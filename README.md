@@ -86,7 +86,7 @@ If you use this framework, please cite:
   author       = {Stéphane Goulet},
   title        = {Theory of Informational Emergence (TEI) — Reproducibility Package},
   year         = {2025},
-  url          = {https://github.com/<your-username>/tei-reproducibility},
+  url          = {https://github.com/leptitane-fr/tei-reproducibility},
   note         = {Preprint, under open review}
 }
 
