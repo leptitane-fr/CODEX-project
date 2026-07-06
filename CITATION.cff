@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Theory of Informational Emergence (TEI) — Toy Model"
+authors:
+  - family-names: Goulet
+    given-names: Stéphane
+version: 5.0
+date-released: 2025-08-24
+url: "https://github.com/leptitane-fr/tei-reproducibility"
+license: MIT
