@@ -24,8 +24,8 @@ question.
 
 ## What's implemented
 
-`sim/graph_generators.py` provides two generators and a shared growth-exponent
-measurement, so the two regimes can be compared directly:
+`sim/graph_generators.py` provides three generators and a shared
+growth-exponent measurement, so the regimes can be compared directly:
 
 - `generate_random_dag` — a generic random causal DAG with no embedding and no
   notion of distance. Its reachable set saturates at nearly the full node count
@@ -39,6 +39,16 @@ measurement, so the two regimes can be compared directly:
   statement of what this does *not* establish (the embedding dimension is
   imposed externally; TEI's actual open question — deriving exponent 3 from a
   purely local, non-embedded rule — is untouched by this instrument).
+- `generate_tei_shadow_graph` — TEI's own candidate mechanism for that open
+  question (the "Regle de l'Ombre Causale"): a purely local assembly rule,
+  with no embedding at all, where each new node connects to a bounded number
+  `k` of existing nodes that must form a local antichain (no existing directed
+  path between any two of them), maintaining a strict transitive reduction.
+  Whether this produces a stable polynomial exponent is answered empirically
+  in `math/tei_shadow_rule_analysis.md` — the short version: it does break the
+  generic saturating-exponential regime, but the measured exponent drifts with
+  hop depth rather than stabilizing, so it does **not** confirm the `N^3`
+  hypothesis as currently implemented.
 
 ## Reproducibility
 
@@ -58,7 +68,12 @@ measurement, so the two regimes can be compared directly:
    python sim/graph_generators.py --mode random-dag --N 100000 --out-degree 4 --ticks 15 --seed 42 --out data/random_dag.npz
    ```
 
-4. Run unit tests:
+4. Test the local, non-embedded Causal Shadow Rule:
+   ```bash
+   python sim/graph_generators.py --mode tei-shadow --k 3 --N 100000 --ticks 20 --seed 42 --out data/tei_shadow_k3.npz
+   ```
+
+5. Run unit tests:
    ```bash
    pytest -q
    ```
@@ -74,6 +89,7 @@ data/                         # Generated .npz outputs (gitignored, run scripts 
 figures/                      # Generated plots (gitignored, run scripts to reproduce)
 math/                         # Provenance notes and derivations
   causal_set_dimension.md
+  tei_shadow_rule_analysis.md
 environment.yml               # Conda environment
 pyproject.toml                # Pytest configuration
 CITATION.cff                  # Citation metadata
