@@ -193,6 +193,40 @@ def test_event_driven_shadow_graph_raises_when_max_nodes_too_small():
         )
 
 
+@pytest.mark.parametrize("k", [2, 3])
+def test_charge_biased_routing_preserves_structural_invariants(k):
+    """The refractive routing changes only the walk's step distribution; the
+    causal-shadow rule and worldline structure must be untouched by it."""
+    graph, worldline, external_time = generate_event_driven_shadow_graph(
+        n_ticks_observer=50, k=k, warmup_events=300, walk_hops=5,
+        background_ratio=10, charge_biased_routing=True, seed=7,
+    )
+    assert nx.is_directed_acyclic_graph(graph)
+    for previous_self, next_self in zip(worldline, worldline[1:]):
+        assert graph.has_edge(previous_self, next_self)
+    for node in graph.nodes:
+        parents = list(graph.predecessors(node))
+        for i in range(len(parents)):
+            for j in range(i + 1, len(parents)):
+                a, b = parents[i], parents[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+
+
+def test_charge_biased_routing_actually_changes_the_graph():
+    # Same seed, only the routing law differs: the two runs must diverge
+    # (otherwise the flag is dead code).
+    g_blind, wl_blind, _ = generate_event_driven_shadow_graph(
+        n_ticks_observer=50, k=3, warmup_events=300, walk_hops=5,
+        background_ratio=10, charge_biased_routing=False, seed=7,
+    )
+    g_bias, wl_bias, _ = generate_event_driven_shadow_graph(
+        n_ticks_observer=50, k=3, warmup_events=300, walk_hops=5,
+        background_ratio=10, charge_biased_routing=True, seed=7,
+    )
+    assert set(g_blind.edges()) != set(g_bias.edges())
+
+
 def test_max_antichain_size_on_a_pure_chain_is_one():
     chain = nx.DiGraph([(0, 1), (1, 2), (2, 3), (3, 4)])
     assert max_antichain_size(chain) == 1

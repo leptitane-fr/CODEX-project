@@ -157,23 +157,38 @@ def generate_tei_shadow_graph(n_nodes, k, valence=None, seed=None):
     return graph
 
 
-def _local_walk_candidate(graph, start, rng, max_hops):
-    """One candidate found by a bounded random walk from `start` over existing edges (either direction)."""
+def _local_walk_candidate(graph, start, rng, max_hops, charge=None):
+    """One candidate found by a bounded random walk from `start` over existing edges (either direction).
+
+    With `charge=None` the walk is blind: each neighbor is equally likely.
+    With a `charge` list, each step lands on a neighbor with probability
+    proportional to `1 + charge[neighbor]` -- *exactly* the same law that sets
+    a node's delay (`delay = 1 + charge`). This is the "refraction in the
+    flux" routing (TEI 7.7): the walk is not given a new attraction knob; the
+    charge landscape that already slows dense nodes down is simply made
+    visible to the same walk that routes flux through them. Denser = slower =
+    more likely to be where the walk ends up. No free coupling parameter
+    exists to tune.
+    """
     node = start
     for _ in range(int(rng.integers(1, max_hops + 1))):
         neighbors = list(graph.predecessors(node)) + list(graph.successors(node))
         if not neighbors:
             break
-        node = neighbors[rng.integers(0, len(neighbors))]
+        if charge is None:
+            node = neighbors[rng.integers(0, len(neighbors))]
+        else:
+            weights = np.array([1.0 + charge[n] for n in neighbors], dtype=float)
+            node = neighbors[rng.choice(len(neighbors), p=weights / weights.sum())]
     return node
 
 
-def _pick_independent_parents(graph, trigger, k, rng, walk_hops, ancestors, max_attempts):
+def _pick_independent_parents(graph, trigger, k, rng, walk_hops, ancestors, max_attempts, charge=None):
     """`trigger` plus up to k-1 more mutually causally independent parents, found via local walk."""
     chosen = [trigger]
     attempts = 0
     while len(chosen) < k and attempts < max_attempts:
-        candidate = _local_walk_candidate(graph, trigger, rng, walk_hops)
+        candidate = _local_walk_candidate(graph, trigger, rng, walk_hops, charge=charge)
         attempts += 1
         if candidate in chosen:
             continue
@@ -193,6 +208,7 @@ def generate_event_driven_shadow_graph(
     warmup_events=3000,
     walk_hops=8,
     background_ratio=50,
+    charge_biased_routing=False,
     seed=None,
     max_nodes=2_000_000,
 ):
@@ -258,6 +274,19 @@ def generate_event_driven_shadow_graph(
       outside events rarely walk back to reconnect with the Observer's own
       past. See math/event_driven_shadow_analysis.md for measurements.
 
+    `charge_biased_routing` selects the routing law of the local walk (both
+    for background events and for the Observer's co-parent picks). False
+    (default): blind walk, every neighbor equally likely -- the variant whose
+    sliding-window diagnostic showed the Observer decoupling from the flux as
+    it ages (transverse width collapsing toward the bare-chain floor; see
+    math/event_driven_shadow_analysis.md). True: each walk step lands on a
+    neighbor with probability proportional to `1 + charge[neighbor]`, i.e.
+    the *same* law that sets delays -- the "refraction in the flux" reading
+    of gravity (TEI 7.7: denser = slower = trajectories bend toward it),
+    with the bias strength fixed by the delay law rather than by any new
+    free parameter. This is a variant selector for A/B comparison, not a
+    tunable knob.
+
     Returns `(graph, worldline, external_time)`:
       - `graph`: the full nx.DiGraph (background + worldline).
       - `worldline`: list of node ids, the Observer's own identity at each of
@@ -295,9 +324,15 @@ def generate_event_driven_shadow_graph(
     for node in range(n0):
         heapq.heappush(heap, (1.0, node, 0))
 
+    # The routing law: blind (None) or refractive (the charge list itself, so
+    # the walk sees exactly the landscape that the delay law defines).
+    routing_charge = charge if charge_biased_routing else None
+
     def fire_background_event(t, trigger):
         nonlocal next_id
-        chosen = _pick_independent_parents(graph, trigger, k, rng, walk_hops, ancestors, max_attempts)
+        chosen = _pick_independent_parents(
+            graph, trigger, k, rng, walk_hops, ancestors, max_attempts, charge=routing_charge
+        )
         new_node = next_id
         next_id += 1
         graph.add_node(new_node)
@@ -338,7 +373,9 @@ def generate_event_driven_shadow_graph(
                 f"max_nodes ({max_nodes}) reached with only {tick}/{n_ticks_observer} "
                 "observer ticks -- raise max_nodes or lower background_ratio"
             )
-        chosen = _pick_independent_parents(graph, self_node, k, rng, walk_hops, ancestors, max_attempts)
+        chosen = _pick_independent_parents(
+            graph, self_node, k, rng, walk_hops, ancestors, max_attempts, charge=routing_charge
+        )
         step_delay = delay(float(np.mean([charge[p] for p in chosen])))
         new_node = next_id
         next_id += 1
@@ -558,6 +595,11 @@ def main():
     parser.add_argument("--warmup-events", type=int, default=3000, help="Background-only warmup events before electing the Observer (event-shadow mode)")
     parser.add_argument("--walk-hops", type=int, default=8, help="Local random-walk radius for candidate selection (event-shadow mode)")
     parser.add_argument("--background-ratio", type=int, default=50, help="Background events per Observer tick (event-shadow mode)")
+    parser.add_argument(
+        "--charge-biased-routing",
+        action="store_true",
+        help="Refractive routing: walk steps land on a neighbor with probability ~ 1+charge, the same law as the delay (event-shadow mode)",
+    )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out", type=str, default=None, help="Path to save counts as .npz")
     args = parser.parse_args()
@@ -578,6 +620,7 @@ def main():
             warmup_events=args.warmup_events,
             walk_hops=args.walk_hops,
             background_ratio=args.background_ratio,
+            charge_biased_routing=args.charge_biased_routing,
             seed=args.seed,
         )
         counts = observer_growth_curve(graph, worldline)
