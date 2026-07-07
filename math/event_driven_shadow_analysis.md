@@ -459,4 +459,101 @@ diagnostic thus gives axis 1 a concrete, falsifiable success criterion defined
 value. If attraction cannot flatten that curve, it has not produced a space,
 whatever exponent it prints -- and if it can, the exponent it then yields is
 worth measuring. This keeps the next step honest: the target is stationarity,
-fixed in advance, not a number near 3.
+fixed in advance, not a number near 3. (Precisely: stationary at a
+*nontrivial* width. `W_L(a) = 1` for all `a` is also "flat", but it is the
+degenerate fixed point -- a bare wire, no space at all -- and does not count.)
+
+## Axis 1 tested: refractive routing FAILS by hub condensation
+
+The mechanism (`charge_biased_routing=True` in
+`generate_event_driven_shadow_graph`): every step of the local random walk --
+background events and the Observer's co-parent picks alike -- lands on a
+neighbor with probability proportional to `1 + charge[neighbor]`, i.e.
+**exactly the delay law**, no new coupling parameter. Flux is drawn toward
+dense/slow regions: the routing component of TEI 7.7's "refraction in the
+flux". Structural invariants (acyclicity, antichain rule, worldline chain) are
+test-covered under both routing laws.
+
+### Raw results — sliding-window width, blind vs refractive (same protocol)
+
+`W_L(a)` = exact max-antichain width of the fixed-height interval
+`I[wl[a], wl[a+400]]`; 8 seeds, `n_ticks=2000`, `warmup=3000`, `walk_hops=8`,
+`background_ratio=50`:
+
+| k | routing | a=100 | a=300 | a=500 | a=800 | a=1200 |
+|---|---|---|---|---|---|---|
+| 2 | blind      | 5.5 | 2.2 | 1.6 | 1.2 | 1.0 |
+| 2 | refractive | 1.5 | 1.1 | 1.0 | 1.0 | 1.0 |
+| 3 | blind      | 75.4 | 24.4 | 13.2 | 5.2 | 3.9 |
+| 3 | refractive | 1.5 | 1.0 | 1.0 | 1.0 | 1.0 |
+| 4 | blind      | 114.0 | 39.5 | 17.0 | 6.0 | 2.9 |
+| 4 | refractive | 5.4 | 1.4 | 1.1 | 1.0 | 1.0 |
+
+The pre-registered criterion is failed in the strongest possible way: the
+refractive width does not flatten at a nontrivial value -- it crashes to the
+bare-chain floor of 1 essentially *immediately*, for every `k`. Attraction did
+not slow the Observer's decoupling; it accelerated it to completion.
+
+### The failure mode is the predicted condensation — measured
+
+| k=3, same protocol | max out-degree (charge) | top-10 nodes' edge share |
+|---|---|---|
+| blind      | 26 | 0.15% |
+| refractive | 1,114 +- 287 | 2.8% |
+
+Under blind routing no node ever accumulates charge beyond ~26. Under
+refractive routing a population of hubs with charge in the hundreds-to-
+thousands forms (a 40x jump in max charge): preferential attachment in its
+classic rich-get-richer form, distributed over many hubs rather than one
+monopoly. This is the "condensation galopante" failure mode named *before*
+the experiment -- with one refinement: the flux is captured not by a single
+black-hole node but by a hub *class*, and the entity starved is the Observer.
+
+### Why the Observer specifically starves — the identity/charge mismatch
+
+The mechanism is clean and worth recording, because it is a genuine
+ontological finding, not a tuning accident:
+
+- Charge (the "mass" that attracts flux) is a **per-node** property.
+- The Observer's identity is a **moving node**: at every tick it abandons its
+  current self (with whatever little charge it had, ~k) and continues as a
+  freshly created child with charge ~0.
+
+So the worldline *leaves its mass behind at every step of self-continuation*.
+Under attractive routing, flux goes where the mass is -- into the old
+background hubs -- and the perpetually newborn Observer is the *least*
+attractive thing in the universe. Implemented gravity therefore empties the
+Observer's surroundings instead of filling them. As modeled, the worldline is
+a **massless** particle, and refraction bends flux away from massless
+particles' neighbourhoods, exactly as measured.
+
+This exposes a real tension between the implementation and the ontology it
+claims to implement. TEI 6ter.3-D defines matter as a closed loop that
+re-executes "sur place" -- localized *because* it keeps re-executing in the
+same place. Our worldline never re-executes in place: it is a bare chain that
+always moves on. It is, in TEI's own classification, a *photon-like open
+motif*, not a matter-like closed one -- and the experiment just demonstrated,
+mechanically, that an open motif cannot gravitationally bind space to itself.
+For attraction to work *for the Observer*, mass would have to be carried by
+the recurring pattern (a closed loop over a persistent neighbourhood) rather
+than left behind on each dead self.
+
+### Verdict on axis 1 as implemented
+
+Negative, by the pre-registered criterion, with the failure mode being the one
+predicted in advance (condensation) plus a sharp diagnosis of *why* it starves
+the Observer specifically (identity/charge mismatch). Recorded per the
+project's discipline: the mechanism was ontologically motivated (bias law =
+delay law, no free knob), the test was fixed before the run, and it failed
+cleanly. Do **not** attempt to rescue it by adding a tunable bias exponent, a
+charge cap, or hub suppression -- every one of those is a new free knob whose
+only purpose would be to steer the outcome (the TEI-3.x failure mode).
+
+The honest open direction this leaves (not implemented, not tested): make the
+Observer an actual closed motif in the sense of 6ter.3-D -- a loop that
+re-executes over a persistent set of nodes, accumulating charge *as a
+pattern* -- and ask whether such a bound structure, under the same refractive
+routing, retains a nontrivial stationary width where the open chain could
+not. That is an ontological redesign of what "the Observer" is, not a
+parameter fix, and it is exactly the distinction (open motif = light, closed
+motif = matter) that the theory itself insists on.

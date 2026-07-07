@@ -74,8 +74,15 @@ growth-exponent measurement, so the regimes can be compared directly:
   then pins the cause: the Observer's transverse width **collapses as it ages**
   (it decouples from the background flux), so the asymptotic emergent spatial
   dimension is effectively 0 — a bare 1D worldline — and the rich early-time
-  width is a transient of birth, not a dimension. See
-  `math/event_driven_shadow_analysis.md`.
+  width is a transient of birth, not a dimension. A gravity-like fix was then
+  tested (`--charge-biased-routing`: walk steps drawn toward dense/slow nodes
+  with probability ∝ 1+charge, the same law as the delay — no new knob) and
+  **failed the pre-registered stationarity criterion**: flux condenses onto
+  background hubs (max charge jumps 26 → ~1100) and the perpetually-newborn
+  worldline, which abandons its charge at every self-continuation step, starves
+  even faster (width → 1 immediately). See
+  `math/event_driven_shadow_analysis.md` for the full study and the
+  identity/charge-mismatch diagnosis.
 
 ## Reproducibility
 

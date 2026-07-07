@@ -136,7 +136,24 @@ The cheap longest-path-depth-level proxy for width was tried and rejected
 (underestimates the exact max antichain 3-7x); use the exact
 `max_antichain_size`. The diagnostic also fixed a success criterion for any
 future attraction/curvature mechanism, *before* building it: a **stationary**
-sliding-window width vs age, not a particular exponent value near 3.
+sliding-window width vs age (at a *nontrivial* value — flat at width 1 is the
+degenerate bare-wire fixed point and does not count), not a particular
+exponent value near 3.
+
+That attraction mechanism has now been built and tested
+(`charge_biased_routing=True`: walk steps ∝ 1+charge, the same law as the
+delay, no new free knob) and it **failed the pre-registered criterion in the
+predicted way**: flux condenses onto background hubs (max charge 26 → ~1100
+vs blind routing) and the width crashes to 1 immediately — the worldline
+abandons its charge at every self-continuation step, so implemented gravity
+drains its neighbourhood instead of filling it (see the identity/charge-
+mismatch section of `math/event_driven_shadow_analysis.md`). Do not try to
+rescue this with a tunable bias exponent, charge cap, or hub suppression —
+each is a free knob whose only role would be steering the outcome (TEI-3.x
+failure mode). The honest open direction recorded there: redesign the
+Observer as a genuinely *closed* motif (a loop re-executing over a persistent
+neighbourhood, per TEI 6ter.3-D) rather than an open chain, and only then
+re-ask the stationarity question.
 
 ## Keeping this file current
 
