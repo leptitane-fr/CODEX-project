@@ -40,6 +40,7 @@ sim/graph_generators.py     # causal graph generators + growth-exponent measurem
 tests/test_graph_generators.py
 math/causal_set_dimension.md   # provenance note for the tau^dim scaling law used
 math/tei_shadow_rule_analysis.md  # raw results for the non-embedded Causal Shadow Rule generator
+math/event_driven_shadow_analysis.md  # design history for the async, observer-relative generator (incl. two dead ends)
 data/, figures/              # generated outputs (gitignored — regenerate via sim/)
 environment.yml               # conda env "tei"
 pyproject.toml                 # pytest config (pythonpath = ".")
@@ -54,13 +55,20 @@ pyproject.toml                 # pytest config (pythonpath = ".")
 - Tests: `pytest -q` from the repo root (relies on `pyproject.toml`'s
   `pythonpath = ["."]` so `from sim.graph_generators import ...` resolves;
   don't remove that without also fixing imports).
-- The CLI in `sim/graph_generators.py` supports three modes, `random-dag`,
-  `sprinkling`, and `tei-shadow` — see its module docstring and `--help` for
-  parameters. `random-dag` and `tei-shadow` also take `--depth-metric
-  {shortest,longest}` (default `shortest`) to choose between
+- The CLI in `sim/graph_generators.py` supports four modes, `random-dag`,
+  `sprinkling`, `tei-shadow`, and `event-shadow` — see its module docstring
+  and `--help` for parameters. `random-dag` and `tei-shadow` also take
+  `--depth-metric {shortest,longest}` (default `shortest`) to choose between
   `reachable_within_hops` and `reachable_within_depth` — see
   `math/tei_shadow_rule_analysis.md` Part B for why the longest-path reading
-  exists and what it does and doesn't change.
+  exists and what it does and doesn't change. `event-shadow` is the
+  asynchronous, observer-relative generator (`--observer-ticks`,
+  `--warmup-events`, `--walk-hops`, `--background-ratio`) — read
+  `math/event_driven_shadow_analysis.md` before touching it: it documents two
+  design attempts that failed outright (a fixed-node Observer starves under
+  both global-heap and local-random-walk selection), and why `walk_hops` /
+  `background_ratio` need to be reasonably large or the measured curve is
+  indistinguishable from a trivial straight line.
 - `data/` and `figures/` are gitignored except for `.gitkeep`; generated
   artifacts should be reproducible from the scripts, not committed as
   fixtures.
@@ -92,6 +100,16 @@ which *metric* (hop count vs. longest path, or a future third option) is
 reported based on which one happens to land closer to 3 for a given `k` —
 report what the measurement shows, not the reading that flatters the
 hypothesis.
+
+A second attempt, `generate_event_driven_shadow_graph`, removes two remaining
+god's-eye-view assumptions from the first generator (a global tick loop, and
+parent sampling from the entire front). Its architecture is validated and
+tested, but **no multi-seed growth-exponent study has been run on it yet** —
+`math/event_driven_shadow_analysis.md` documents the design process only
+(including two attempts that failed outright: a fixed-node Observer, rather
+than a self-continuing worldline, could not accumulate ticks under either a
+global heap or a local random walk). Don't cite a growth exponent from this
+generator until that study exists.
 
 ## Keeping this file current
 

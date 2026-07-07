@@ -24,7 +24,7 @@ question.
 
 ## What's implemented
 
-`sim/graph_generators.py` provides three generators and a shared
+`sim/graph_generators.py` provides four generators and a shared
 growth-exponent measurement, so the regimes can be compared directly:
 
 - `generate_random_dag` — a generic random causal DAG with no embedding and no
@@ -52,6 +52,17 @@ growth-exponent measurement, so the regimes can be compared directly:
   onto a stable value (it drifts upward with hop count, or rises then falls
   with longest-path depth), so it does **not** confirm the `N^3` hypothesis
   as currently implemented.
+- `generate_event_driven_shadow_graph` — a second, more ontologically careful
+  realization of the same rule: no global tick (an asynchronous per-node
+  delay queue instead of a `for` loop), no saturation wall (unbounded charge,
+  only its *delay* grows, linearly), and no global sampling (candidates are
+  found via a bounded local random walk, never a draw from the whole
+  population). Growth is measured from a designated Observer's own point of
+  view — modeled, per TEI 6ter.3-D, as a self-continuing worldline rather
+  than a fixed node, since a fixed node was empirically shown not to work
+  (see `math/event_driven_shadow_analysis.md` for that design history,
+  including two dead ends). Architecture validated and tested; a full
+  multi-seed exponent study has not been run yet.
 
 ## Reproducibility
 
@@ -80,7 +91,12 @@ growth-exponent measurement, so the regimes can be compared directly:
    python sim/graph_generators.py --mode tei-shadow --k 3 --N 100000 --ticks 300 --depth-metric longest --seed 42 --out data/tei_shadow_k3_longest.npz
    ```
 
-5. Run unit tests:
+5. Test the event-driven, observer-relative version of the rule:
+   ```bash
+   python sim/graph_generators.py --mode event-shadow --k 3 --observer-ticks 300 --warmup-events 3000 --walk-hops 8 --background-ratio 50 --seed 42 --out data/event_shadow_k3.npz
+   ```
+
+6. Run unit tests:
    ```bash
    pytest -q
    ```
@@ -97,6 +113,7 @@ figures/                      # Generated plots (gitignored, run scripts to repr
 math/                         # Provenance notes and derivations
   causal_set_dimension.md
   tei_shadow_rule_analysis.md
+  event_driven_shadow_analysis.md
 environment.yml               # Conda environment
 pyproject.toml                # Pytest configuration
 CITATION.cff                  # Citation metadata

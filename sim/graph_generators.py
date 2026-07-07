@@ -33,6 +33,19 @@ gives two concrete generators to compare against each other:
   math/tei_shadow_rule_analysis.md; see that file for the raw results and their
   honest reading -- they do not confirm the N^3 hypothesis.
 
+- `generate_event_driven_shadow_graph`: a second, more ontologically careful
+  realization of the same Causal Shadow Rule. `generate_tei_shadow_graph`
+  still has two god's-eye-view assumptions baked in -- a global `for` loop
+  that advances every node in lockstep, and parent selection sampled
+  uniformly from the *entire* front. This generator removes both (async,
+  per-node delay instead of a tick loop; bounded local random walk instead of
+  global sampling; no saturation wall, only unbounded-but-diluting delay) and
+  measures growth from a designated Observer's own point of view rather than
+  from an outside "God's eye" origin -- see its docstring and
+  math/event_driven_shadow_analysis.md for the design history (including a
+  documented dead end: a fixed-node Observer, rather than a self-continuing
+  worldline, empirically fails to accumulate meaningful ticks at all).
+
 Neither `generate_random_dag` nor `sprinkle_minkowski` explains why an exponent
 of 3 (rather than 2 or 4) should emerge from purely local, non-embedded
 coupling rules -- that is the actual open question (TEI 7.5). This module is
@@ -40,6 +53,8 @@ instrumentation for exploring it, not a claimed solution to it.
 """
 
 import argparse
+import bisect
+import heapq
 
 import networkx as nx
 import numpy as np
@@ -142,6 +157,229 @@ def generate_tei_shadow_graph(n_nodes, k, valence=None, seed=None):
     return graph
 
 
+def _local_walk_candidate(graph, start, rng, max_hops):
+    """One candidate found by a bounded random walk from `start` over existing edges (either direction)."""
+    node = start
+    for _ in range(int(rng.integers(1, max_hops + 1))):
+        neighbors = list(graph.predecessors(node)) + list(graph.successors(node))
+        if not neighbors:
+            break
+        node = neighbors[rng.integers(0, len(neighbors))]
+    return node
+
+
+def _pick_independent_parents(graph, trigger, k, rng, walk_hops, ancestors, max_attempts):
+    """`trigger` plus up to k-1 more mutually causally independent parents, found via local walk."""
+    chosen = [trigger]
+    attempts = 0
+    while len(chosen) < k and attempts < max_attempts:
+        candidate = _local_walk_candidate(graph, trigger, rng, walk_hops)
+        attempts += 1
+        if candidate in chosen:
+            continue
+        candidate_ancestors = ancestors[candidate]
+        independent = all(
+            not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
+            for p in chosen
+        )
+        if independent:
+            chosen.append(candidate)
+    return chosen
+
+
+def generate_event_driven_shadow_graph(
+    n_ticks_observer,
+    k,
+    warmup_events=3000,
+    walk_hops=8,
+    background_ratio=50,
+    seed=None,
+    max_nodes=2_000_000,
+):
+    """Event-driven, local, observer-relative realization of the Causal Shadow Rule.
+
+    `generate_tei_shadow_graph` still has two god's-eye-view assumptions baked
+    in: a global `for` loop that advances every node in lockstep, and parent
+    selection sampled uniformly from the *entire* front (which requires
+    knowing the whole universe's history at every step, however large it has
+    grown). This generator removes both:
+
+    1. No global tick. Node creation is driven by an asynchronous priority
+       queue (the standard discrete-event-simulation pattern): each node has
+       its own pending "next action" time, and whichever is smallest fires
+       next. Nothing is woken up except by its own accumulated delay.
+    2. No saturation wall. Out-degree ("charge") is unbounded -- a node is
+       never retired from eligibility. What grows with charge is only its own
+       delay before its next action (`delay(charge) = 1 + charge`, strictly
+       linear: each additional active relation costs exactly one silent-relay
+       unit, never a geometric square/exponential). A busy node is never
+       blocked, only diluted.
+    3. No global sampling anywhere. Both the background dynamics and the
+       Observer's own parent selection draw candidates via a bounded local
+       random walk (`walk_hops` steps, over existing edges in both
+       directions) starting at the acting node -- never a draw from the
+       whole population.
+
+    Growth is measured from a designated Observer's own point of view (TEI
+    6ter.3-D: a persistent object is a "motif ferme", a closed loop of
+    recurring executions -- not a single static point). This matters
+    concretely: an earlier version of this generator modeled the Observer as
+    one fixed node hoping to be reselected by the dynamics above, and that
+    empirically failed under both global-heap selection and local-random-walk
+    selection alike -- a fixed node's cumulative participation count plateaus
+    (logarithmic growth at best, often outright starvation), because any
+    newly created node competes on equal footing and the population never
+    stops growing. The fix, grounded in the project's own ontology rather
+    than invented ad hoc: the Observer is not a node, it is a worldline. At
+    each of its own ticks, its current self picks its own next self among its
+    newly created children (self-continuation), guaranteeing steady progress
+    with no competition against the rest of the universe.
+
+    Three phases:
+
+    - Warmup (`warmup_events`, background only): dissipates the initial
+      antichain's structural artifacts before anything is measured.
+    - Observer election: a *fresh* node (zero charge, so its later successors
+      are exactly its own worldline, uncontaminated by pre-election activity)
+      is drawn at random from the population active at the end of warmup.
+    - Concurrent phase: the Observer's worldline self-continues once per
+      tick, interleaved with `background_ratio` background events per tick
+      -- a fixed ratio, not a time-based comparison. A time-based comparison
+      (fire whichever of the worldline or the background heap has the
+      smaller scheduled time) was tried first and abandoned: the background
+      heap accumulates a large backlog of closely-spaced low-delay entries,
+      so its clock advances far more slowly per event than the worldline's,
+      and the comparison let hundreds of thousands of background events fire
+      per single worldline tick. `background_ratio` and `walk_hops` both
+      need to be reasonably large (a few dozen, and roughly 8+, respectively)
+      for the Observer's causal shadow to pick up meaningful branching beyond
+      its own guaranteed self-continuation chain -- at low settings the
+      measured curve is barely distinguishable from a bare line, since
+      outside events rarely walk back to reconnect with the Observer's own
+      past. See math/event_driven_shadow_analysis.md for measurements.
+
+    Returns `(graph, worldline, external_time)`:
+      - `graph`: the full nx.DiGraph (background + worldline).
+      - `worldline`: list of node ids, the Observer's own identity at each of
+        its own ticks (`worldline[0]` is "Observer zero"; length
+        `n_ticks_observer + 1`).
+      - `external_time`: cumulative descriptive delay at each tick (length
+        `n_ticks_observer`) -- how much "external coordinate time" the
+        network experienced per unit of the Observer's own proper time.
+        Purely descriptive: computed from the real charge of the parents
+        chosen at each tick, but never gates the loop -- the Observer's own
+        proper time advances by exactly one tick per iteration, exactly as a
+        real observer never feels their own time dilating.
+    """
+    rng = np.random.default_rng(seed)
+    graph = nx.DiGraph()
+
+    n0 = k
+    graph.add_nodes_from(range(n0))
+
+    charge = [0] * n0
+    current_gen = [0] * n0
+    ancestors = [0] * n0
+    max_attempts = max(50, k * 20)
+
+    def delay(load):
+        return 1.0 + load
+
+    def new_slot():
+        charge.append(0)
+        current_gen.append(0)
+        ancestors.append(0)
+
+    heap = []
+    next_id = n0
+    for node in range(n0):
+        heapq.heappush(heap, (1.0, node, 0))
+
+    def fire_background_event(t, trigger):
+        nonlocal next_id
+        chosen = _pick_independent_parents(graph, trigger, k, rng, walk_hops, ancestors, max_attempts)
+        new_node = next_id
+        next_id += 1
+        graph.add_node(new_node)
+        new_slot()
+        new_ancestors = 0
+        for p in chosen:
+            graph.add_edge(p, new_node)
+            new_ancestors |= ancestors[p] | (1 << p)
+            charge[p] += 1
+            current_gen[p] += 1
+            heapq.heappush(heap, (t + delay(charge[p]), p, current_gen[p]))
+        ancestors[new_node] = new_ancestors
+        heapq.heappush(heap, (t + delay(0), new_node, current_gen[new_node]))
+
+    # --- Phase 1: warmup (background only, dissipate initial-antichain artifacts) ---
+    t = 0.0
+    for _ in range(warmup_events):
+        if next_id >= max_nodes:
+            raise RuntimeError(f"max_nodes ({max_nodes}) reached during warmup")
+        t, trigger, gen = heapq.heappop(heap)
+        if gen != current_gen[trigger]:
+            continue
+        fire_background_event(t, trigger)
+
+    # --- Phase 2: elect "Observer zero" (fresh node from the stabilized population) ---
+    fresh = [node for node in range(next_id) if charge[node] == 0]
+    observer_root = int(rng.choice(fresh))
+
+    # --- Phase 3: concurrent background growth + self-continuing worldline ---
+    worldline = [observer_root]
+    external_time = np.zeros(n_ticks_observer)
+    self_node = observer_root
+    worldline_time = t
+
+    for tick in range(n_ticks_observer):
+        if next_id >= max_nodes:
+            raise RuntimeError(
+                f"max_nodes ({max_nodes}) reached with only {tick}/{n_ticks_observer} "
+                "observer ticks -- raise max_nodes or lower background_ratio"
+            )
+        chosen = _pick_independent_parents(graph, self_node, k, rng, walk_hops, ancestors, max_attempts)
+        step_delay = delay(float(np.mean([charge[p] for p in chosen])))
+        new_node = next_id
+        next_id += 1
+        graph.add_node(new_node)
+        new_slot()
+        new_ancestors = 0
+        for p in chosen:
+            graph.add_edge(p, new_node)
+            new_ancestors |= ancestors[p] | (1 << p)
+            charge[p] += 1
+        ancestors[new_node] = new_ancestors
+        self_node = new_node
+        worldline.append(self_node)
+        worldline_time += step_delay
+        external_time[tick] = worldline_time
+
+        for _ in range(background_ratio):
+            if not heap or next_id >= max_nodes:
+                break
+            t2, trigger, gen = heapq.heappop(heap)
+            if gen != current_gen[trigger]:
+                continue
+            fire_background_event(t2, trigger)
+
+    return graph, worldline, external_time
+
+
+def observer_growth_curve(graph, worldline):
+    """Number of distinct nodes in the Observer's causal future, indexed by its own tick count.
+
+    `worldline[0]` is "Observer zero"; the causal future of the *worldline as
+    a whole* is exactly `nx.descendants(graph, worldline[0])`, since every
+    later self is by construction a descendant of the first. At tick t
+    (1-indexed), the count is how many of those descendants already existed
+    at the moment `worldline[t]` was created (using node id order, since ids
+    are assigned in creation order throughout this module).
+    """
+    descendant_ids = sorted(nx.descendants(graph, worldline[0]))
+    return np.array([bisect.bisect_right(descendant_ids, node) for node in worldline[1:]])
+
+
 def causal_future_mask(points, origin_index):
     """Boolean mask of points causally following `points[origin_index]`.
 
@@ -237,13 +475,13 @@ def fit_growth_exponent(counts):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["random-dag", "sprinkling", "tei-shadow"], required=True)
+    parser.add_argument("--mode", choices=["random-dag", "sprinkling", "tei-shadow", "event-shadow"], required=True)
     parser.add_argument("--dim", type=int, default=4, help="Embedding dimension (sprinkling mode)")
     parser.add_argument("--N", type=int, default=100000, help="Number of nodes/points")
     parser.add_argument("--out-degree", type=int, default=4, help="Out-degree (random-dag mode)")
-    parser.add_argument("--k", type=int, default=3, help="Max valence / antichain size (tei-shadow mode)")
+    parser.add_argument("--k", type=int, default=3, help="Max valence / antichain size (tei-shadow, event-shadow modes)")
     parser.add_argument("--valence", type=int, default=None, help="Parent-selection budget per node (tei-shadow mode, default: k)")
-    parser.add_argument("--ticks", type=int, default=20, help="Number of tick buckets to measure")
+    parser.add_argument("--ticks", type=int, default=20, help="Number of tick buckets to measure (random-dag/sprinkling/tei-shadow modes)")
     parser.add_argument(
         "--depth-metric",
         choices=["shortest", "longest"],
@@ -251,6 +489,10 @@ def main():
         help="Notion of causal depth for random-dag/tei-shadow modes (see reachable_within_hops vs reachable_within_depth)",
     )
     parser.add_argument("--window-frac", type=float, default=0.3, help="Analysis window fraction (sprinkling mode)")
+    parser.add_argument("--observer-ticks", type=int, default=300, help="Observer's own tick budget (event-shadow mode)")
+    parser.add_argument("--warmup-events", type=int, default=3000, help="Background-only warmup events before electing the Observer (event-shadow mode)")
+    parser.add_argument("--walk-hops", type=int, default=8, help="Local random-walk radius for candidate selection (event-shadow mode)")
+    parser.add_argument("--background-ratio", type=int, default=50, help="Background events per Observer tick (event-shadow mode)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out", type=str, default=None, help="Path to save counts as .npz")
     args = parser.parse_args()
@@ -264,6 +506,16 @@ def main():
             counts = reachable_within_hops(graph, origin=0, max_hops=args.ticks)
         else:
             counts = reachable_within_depth(graph, origin=0, max_depth=args.ticks)
+    elif args.mode == "event-shadow":
+        graph, worldline, external_time = generate_event_driven_shadow_graph(
+            args.observer_ticks,
+            args.k,
+            warmup_events=args.warmup_events,
+            walk_hops=args.walk_hops,
+            background_ratio=args.background_ratio,
+            seed=args.seed,
+        )
+        counts = observer_growth_curve(graph, worldline)
     else:
         points = sprinkle_minkowski(args.N, args.dim, seed=args.seed)
         origin_index = int(np.argmin(points[:, 0]))
@@ -273,8 +525,14 @@ def main():
     print(f"mode={args.mode} estimated growth exponent = {exponent:.3f}")
     print(f"counts per tick: {counts.tolist()}")
 
+    if args.mode == "event-shadow":
+        print(f"external_time (descriptive) per tick: {external_time.round(2).tolist()}")
+
     if args.out:
-        np.savez(args.out, counts=counts, exponent=exponent)
+        if args.mode == "event-shadow":
+            np.savez(args.out, counts=counts, exponent=exponent, external_time=external_time)
+        else:
+            np.savez(args.out, counts=counts, exponent=exponent)
 
 
 if __name__ == "__main__":
