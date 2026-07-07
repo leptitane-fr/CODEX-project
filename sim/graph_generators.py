@@ -46,6 +46,16 @@ gives two concrete generators to compare against each other:
   documented dead end: a fixed-node Observer, rather than a self-continuing
   worldline, empirically fails to accumulate meaningful ticks at all).
 
+- `generate_braided_motif_graph`: the same event-driven engine, but the
+  Observer is a *closed motif* (matter) instead of an open chain (light): a
+  worldtube of generations, each an antichain of `motif_width` nodes, braided
+  by >= 2 internal parents per node and metabolizing via antichain-checked
+  captures from the background flux. Built after the open-chain Observer was
+  shown to be photon-like (it abandons its charge at every step) and therefore
+  structurally unable to hold space around itself under attractive routing --
+  see math/event_driven_shadow_analysis.md for that verdict and for the
+  pre-registered halo criterion this generator is judged by.
+
 Neither `generate_random_dag` nor `sprinkle_minkowski` explains why an exponent
 of 3 (rather than 2 or 4) should emerge from purely local, non-embedded
 coupling rules -- that is the actual open question (TEI 7.5). This module is
@@ -403,6 +413,226 @@ def generate_event_driven_shadow_graph(
     return graph, worldline, external_time
 
 
+def generate_braided_motif_graph(
+    n_generations,
+    k,
+    motif_width,
+    warmup_events=3000,
+    walk_hops=8,
+    background_ratio=50,
+    internal_parents=2,
+    charge_biased_routing=False,
+    seed=None,
+    max_nodes=2_000_000,
+):
+    """Event-driven Causal Shadow Rule with a *closed-motif* (matter-like) Observer.
+
+    The open-chain worldline of `generate_event_driven_shadow_graph` was shown
+    (math/event_driven_shadow_analysis.md) to be, in TEI's own classification,
+    photon-like: it abandons its charge at every self-continuation step, so
+    under attractive (refractive) routing the flux drains *away* from it and
+    its transverse space collapses to a bare wire. TEI 6ter.3-D says matter is
+    instead a closed motif -- a loop of recurring executions that re-executes
+    "sur place". A DAG forbids literal cycles, so the closure is implemented
+    as a *braid in causal time*: a worldtube of generations, each generation
+    an antichain of `motif_width` (W) nodes, re-executing the same connection
+    pattern over a persistent neighbourhood.
+
+    Per generation (one tick of the motif's proper time), each of the W new
+    nodes takes:
+
+    - `internal_parents` (default 2) distinct parents from the previous
+      generation -- the braiding. Two is the minimum closure: with a single
+      internal parent the "tube" degenerates into W independent chains (W
+      photons, not one object). Generations are automatically antichains
+      (fresh siblings share no edges), and internal parents are drawn from an
+      antichain, so the Causal Shadow Rule holds by construction.
+    - `k - internal_parents` *capture* attempts: local-walk candidates from
+      the background flux, subject to the same mutual-independence check as
+      every other parent in this module. Captures can fail the check; the
+      realized capture rate is therefore a *measured* metabolic property of
+      the run (returned as `capture_counts`), never a decreed one.
+
+    Entropy is the generational rotation itself: once generation g+1 exists,
+    the motif never re-executes over generation g again. Old members are not
+    deleted (the DAG is append-only) -- they simply return to being ordinary
+    background, their pending queue events still fire. The motif's identity is
+    the unbroken succession of generations; nothing stores it (present encodes
+    present+1, per the no-memory rule).
+
+    Structural consequence, stated before any measurement: `k = 2` cannot
+    make matter under this rule -- braiding consumes both parent slots
+    (`internal_parents = 2`) leaving zero capture slots (a sealed crystal with
+    no metabolism), and dropping to one internal parent un-braids the tube
+    into photons. Matter requires `k >= 3`.
+
+    `motif_width` W is the motif's *mass* -- a physical property of the object
+    under test, to be swept (e.g. W in {2, 4, 8}), never tuned toward a target
+    exponent. `internal_parents` is a discrete structural choice: 2 is the
+    main rule, `k - 1` the robustness control.
+
+    The pre-registered success criterion for the gravity question lives in
+    math/event_driven_shadow_analysis.md: the signal is the *halo* -- the
+    sliding-window interval width in excess of what the identical motif shows
+    under blind routing -- not the tube's own built-in width, which this
+    construction guarantees and which therefore proves nothing.
+
+    Returns `(graph, generations, external_time, capture_counts)`:
+      - `generations`: list of `n_generations + 1` lists of node ids
+        (`generations[0]` is the seeded antichain of W fresh nodes).
+      - `external_time`: cumulative descriptive delay per generation (same
+        convention as the worldline generator: computed from real parent
+        charges, never gating the loop).
+      - `capture_counts`: successful background captures per generation.
+    """
+    if internal_parents < 2:
+        raise ValueError("braiding requires internal_parents >= 2")
+    if k < internal_parents:
+        raise ValueError("k must be >= internal_parents")
+    if motif_width < 2:
+        raise ValueError("motif_width must be >= 2")
+
+    rng = np.random.default_rng(seed)
+    graph = nx.DiGraph()
+
+    n0 = k
+    graph.add_nodes_from(range(n0))
+
+    charge = [0] * n0
+    current_gen = [0] * n0
+    ancestors = [0] * n0
+    max_attempts = max(50, k * 20)
+
+    def delay(load):
+        return 1.0 + load
+
+    def new_slot():
+        charge.append(0)
+        current_gen.append(0)
+        ancestors.append(0)
+
+    heap = []
+    next_id = n0
+    for node in range(n0):
+        heapq.heappush(heap, (1.0, node, 0))
+
+    routing_charge = charge if charge_biased_routing else None
+
+    def fire_background_event(t, trigger):
+        nonlocal next_id
+        chosen = _pick_independent_parents(
+            graph, trigger, k, rng, walk_hops, ancestors, max_attempts, charge=routing_charge
+        )
+        new_node = next_id
+        next_id += 1
+        graph.add_node(new_node)
+        new_slot()
+        new_ancestors = 0
+        for p in chosen:
+            graph.add_edge(p, new_node)
+            new_ancestors |= ancestors[p] | (1 << p)
+            charge[p] += 1
+            current_gen[p] += 1
+            heapq.heappush(heap, (t + delay(charge[p]), p, current_gen[p]))
+        ancestors[new_node] = new_ancestors
+        heapq.heappush(heap, (t + delay(0), new_node, current_gen[new_node]))
+
+    # --- Phase 1: warmup (background only) ---
+    t = 0.0
+    for _ in range(warmup_events):
+        if next_id >= max_nodes:
+            raise RuntimeError(f"max_nodes ({max_nodes}) reached during warmup")
+        t, trigger, gen = heapq.heappop(heap)
+        if gen != current_gen[trigger]:
+            continue
+        fire_background_event(t, trigger)
+
+    # --- Phase 2: seed generation 0 with W fresh nodes. A node with charge 0
+    # has no descendants, so any set of charge-0 nodes is automatically an
+    # antichain -- no search needed. ---
+    fresh = [node for node in range(next_id) if charge[node] == 0]
+    if len(fresh) < motif_width:
+        raise RuntimeError("not enough fresh nodes after warmup to seed the motif")
+    generation_zero = [int(x) for x in rng.choice(fresh, size=motif_width, replace=False)]
+
+    generations = [generation_zero]
+    external_time = np.zeros(n_generations)
+    capture_counts = np.zeros(n_generations, dtype=int)
+    worldtube_time = t
+
+    # --- Phase 3: braided advance, interleaved with background growth ---
+    for g in range(n_generations):
+        previous = generations[-1]
+        previous_set = set(previous)
+        new_generation = []
+        new_generation_set = set()
+        parent_charges = []
+        captures = 0
+        for _ in range(motif_width):
+            if next_id >= max_nodes:
+                raise RuntimeError(
+                    f"max_nodes ({max_nodes}) reached at generation {g}/{n_generations}"
+                )
+            picks = rng.choice(len(previous), size=internal_parents, replace=False)
+            chosen = [previous[i] for i in picks]
+            attempts = 0
+            captured = 0
+            while captured < k - internal_parents and attempts < max_attempts:
+                candidate = _local_walk_candidate(
+                    graph, chosen[0], rng, walk_hops, charge=routing_charge
+                )
+                attempts += 1
+                # Capture must metabolize *background* flux: both membranes of
+                # the motif are excluded -- the previous generation (its
+                # members would pass the antichain check, being mutually
+                # independent, but eating a sibling strand is not nourishment)
+                # and the generation under construction (a fresh sibling can
+                # pass the check too, when the internal parents are disjoint,
+                # which would create a same-generation edge and silently break
+                # the generation's antichain property, corrupting every later
+                # internal-parent pick).
+                if candidate in chosen or candidate in previous_set or candidate in new_generation_set:
+                    continue
+                candidate_ancestors = ancestors[candidate]
+                independent = all(
+                    not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
+                    for p in chosen
+                )
+                if independent:
+                    chosen.append(candidate)
+                    captured += 1
+            captures += captured
+
+            new_node = next_id
+            next_id += 1
+            graph.add_node(new_node)
+            new_slot()
+            new_ancestors = 0
+            for p in chosen:
+                graph.add_edge(p, new_node)
+                new_ancestors |= ancestors[p] | (1 << p)
+                charge[p] += 1
+            ancestors[new_node] = new_ancestors
+            new_generation.append(new_node)
+            new_generation_set.add(new_node)
+            parent_charges.extend(charge[p] for p in chosen)
+
+        generations.append(new_generation)
+        capture_counts[g] = captures
+        worldtube_time += delay(float(np.mean(parent_charges)))
+        external_time[g] = worldtube_time
+
+        for _ in range(background_ratio):
+            if not heap or next_id >= max_nodes:
+                break
+            t2, trigger, gen = heapq.heappop(heap)
+            if gen != current_gen[trigger]:
+                continue
+            fire_background_event(t2, trigger)
+
+    return graph, generations, external_time, capture_counts
+
+
 def observer_growth_curve(graph, worldline):
     """Number of distinct nodes in the Observer's causal future, indexed by its own tick count.
 
@@ -577,7 +807,7 @@ def fit_growth_exponent(counts):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["random-dag", "sprinkling", "tei-shadow", "event-shadow"], required=True)
+    parser.add_argument("--mode", choices=["random-dag", "sprinkling", "tei-shadow", "event-shadow", "braided-motif"], required=True)
     parser.add_argument("--dim", type=int, default=4, help="Embedding dimension (sprinkling mode)")
     parser.add_argument("--N", type=int, default=100000, help="Number of nodes/points")
     parser.add_argument("--out-degree", type=int, default=4, help="Out-degree (random-dag mode)")
@@ -598,8 +828,10 @@ def main():
     parser.add_argument(
         "--charge-biased-routing",
         action="store_true",
-        help="Refractive routing: walk steps land on a neighbor with probability ~ 1+charge, the same law as the delay (event-shadow mode)",
+        help="Refractive routing: walk steps land on a neighbor with probability ~ 1+charge, the same law as the delay (event-shadow, braided-motif modes)",
     )
+    parser.add_argument("--motif-width", type=int, default=4, help="W, the motif's mass: nodes per generation (braided-motif mode)")
+    parser.add_argument("--internal-parents", type=int, default=2, help="Internal braid parents per node, structural choice: 2 main, k-1 control (braided-motif mode)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out", type=str, default=None, help="Path to save counts as .npz")
     args = parser.parse_args()
@@ -624,6 +856,21 @@ def main():
             seed=args.seed,
         )
         counts = observer_growth_curve(graph, worldline)
+    elif args.mode == "braided-motif":
+        graph, generations, external_time, capture_counts = generate_braided_motif_graph(
+            args.observer_ticks,
+            args.k,
+            args.motif_width,
+            warmup_events=args.warmup_events,
+            walk_hops=args.walk_hops,
+            background_ratio=args.background_ratio,
+            internal_parents=args.internal_parents,
+            charge_biased_routing=args.charge_biased_routing,
+            seed=args.seed,
+        )
+        # Growth curve of the motif's causal future, sampled at each
+        # generation's first member (ids are creation-ordered).
+        counts = observer_growth_curve(graph, [gen[0] for gen in generations])
     else:
         points = sprinkle_minkowski(args.N, args.dim, seed=args.seed)
         origin_index = int(np.argmin(points[:, 0]))
@@ -635,10 +882,16 @@ def main():
 
     if args.mode == "event-shadow":
         print(f"external_time (descriptive) per tick: {external_time.round(2).tolist()}")
+    elif args.mode == "braided-motif":
+        print(f"mean capture rate: {capture_counts.mean():.2f}/generation "
+              f"(max possible {args.motif_width * (args.k - args.internal_parents)})")
 
     if args.out:
         if args.mode == "event-shadow":
             np.savez(args.out, counts=counts, exponent=exponent, external_time=external_time)
+        elif args.mode == "braided-motif":
+            np.savez(args.out, counts=counts, exponent=exponent,
+                     external_time=external_time, capture_counts=capture_counts)
         else:
             np.savez(args.out, counts=counts, exponent=exponent)
 

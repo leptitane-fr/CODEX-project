@@ -6,6 +6,7 @@ from sim.graph_generators import (
     causal_future_mask,
     causal_interval,
     fit_growth_exponent,
+    generate_braided_motif_graph,
     generate_event_driven_shadow_graph,
     generate_random_dag,
     generate_tei_shadow_graph,
@@ -286,3 +287,81 @@ def test_max_antichain_size_matches_bruteforce_on_small_random_dags(seed):
                 graph.add_edge(u, v)
     brute = max(len(anti) for anti in nx.antichains(graph))
     assert max_antichain_size(graph) == brute
+
+
+def _small_motif_graph(k=3, motif_width=4, charge_biased_routing=False, seed=7):
+    return generate_braided_motif_graph(
+        n_generations=40, k=k, motif_width=motif_width, warmup_events=300,
+        walk_hops=5, background_ratio=10,
+        charge_biased_routing=charge_biased_routing, seed=seed,
+    )
+
+
+def test_braided_motif_rejects_invalid_parameters():
+    with pytest.raises(ValueError):
+        generate_braided_motif_graph(n_generations=10, k=3, motif_width=1, seed=0)
+    with pytest.raises(ValueError):
+        generate_braided_motif_graph(n_generations=10, k=1, motif_width=4, seed=0)
+    with pytest.raises(ValueError):
+        generate_braided_motif_graph(
+            n_generations=10, k=3, motif_width=4, internal_parents=1, seed=0
+        )
+
+
+@pytest.mark.parametrize("routing", [False, True])
+def test_braided_motif_graph_is_acyclic_and_respects_shadow_rule(routing):
+    graph, generations, _, _ = _small_motif_graph(charge_biased_routing=routing)
+    assert nx.is_directed_acyclic_graph(graph)
+    for node in graph.nodes:
+        parents = list(graph.predecessors(node))
+        for i in range(len(parents)):
+            for j in range(i + 1, len(parents)):
+                a, b = parents[i], parents[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+
+
+def test_braided_motif_generations_are_antichains_of_constant_width():
+    graph, generations, _, _ = _small_motif_graph(motif_width=4)
+    assert len(generations) == 41  # n_generations + 1
+    for generation in generations:
+        assert len(generation) == 4
+        for i in range(4):
+            for j in range(i + 1, 4):
+                a, b = generation[i], generation[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+
+
+def test_braided_motif_braids_from_previous_generation():
+    # Every motif node takes exactly 2 internal parents from the immediately
+    # previous generation (the braid), plus possibly captured background nodes.
+    graph, generations, _, capture_counts = _small_motif_graph(k=3, motif_width=4)
+    for prev, current in zip(generations, generations[1:]):
+        prev_set = set(prev)
+        for node in current:
+            parents = set(graph.predecessors(node))
+            assert len(parents & prev_set) == 2
+            # k=3, internal=2 => at most one capture per node
+            assert len(parents - prev_set) <= 1
+
+
+def test_braided_motif_metabolism_actually_captures():
+    # With k=3 there is one capture slot per node per generation; over 40
+    # generations at least some captures must succeed, and none may exceed
+    # the slot budget.
+    _, _, _, capture_counts = _small_motif_graph(k=3, motif_width=4)
+    assert capture_counts.sum() > 0
+    assert capture_counts.max() <= 4  # motif_width * (k - internal_parents)
+
+
+def test_braided_motif_k2_is_sealed_no_metabolism():
+    # The structural prediction: k=2 leaves zero capture slots -- a sealed
+    # crystal. The run must work but capture nothing.
+    _, _, _, capture_counts = _small_motif_graph(k=2, motif_width=4)
+    assert capture_counts.sum() == 0
+
+
+def test_braided_motif_external_time_is_monotonic():
+    _, _, external_time, _ = _small_motif_graph()
+    assert np.all(np.diff(external_time) > 0)
