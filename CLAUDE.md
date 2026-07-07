@@ -56,7 +56,11 @@ pyproject.toml                 # pytest config (pythonpath = ".")
   don't remove that without also fixing imports).
 - The CLI in `sim/graph_generators.py` supports three modes, `random-dag`,
   `sprinkling`, and `tei-shadow` — see its module docstring and `--help` for
-  parameters.
+  parameters. `random-dag` and `tei-shadow` also take `--depth-metric
+  {shortest,longest}` (default `shortest`) to choose between
+  `reachable_within_hops` and `reachable_within_depth` — see
+  `math/tei_shadow_rule_analysis.md` Part B for why the longest-path reading
+  exists and what it does and doesn't change.
 - `data/` and `figures/` are gitignored except for `.gitkeep`; generated
   artifacts should be reproducible from the scripts, not committed as
   fixtures.
@@ -74,14 +78,20 @@ One such attempt now exists: `generate_tei_shadow_graph` implements TEI's
 "Regle de l'Ombre Causale" (bounded valence + strict transitive reduction, no
 embedding). Measured results are in `math/tei_shadow_rule_analysis.md` — read
 that file before citing or re-deriving this generator's exponent. Summary:
-it breaks the generic saturating-exponential regime, but the measured
-exponent **drifts with hop depth rather than stabilizing**, so it does not
-confirm N³. Treat this as an open, unresolved attempt, not a result to build
-on. If asked to "solve" or "derive" this question, don't produce a generator
-that secretly bakes in dimension 3 (e.g. via a hardcoded embedding, or by
-tuning parameters until an exponent estimate lands near 3) and present it as
-a derivation — that is exactly the failure mode (TEI 3.x) this project's
-discipline exists to prevent.
+it breaks the generic saturating-exponential regime under both notions of
+causal depth tried (shortest-path hops and longest-path depth), but the
+measured exponent **does not settle onto a stable value under either metric**
+(it drifts upward with hop count, or rises then falls with longest-path
+depth), so it does not confirm N³. Treat this as an open, unresolved attempt,
+not a result to build on. If asked to "solve" or "derive" this question,
+don't produce a generator that secretly bakes in dimension 3 (e.g. via a
+hardcoded embedding, or by tuning parameters until an exponent estimate lands
+near 3) and present it as a derivation — that is exactly the failure mode
+(TEI 3.x) this project's discipline exists to prevent. This includes tuning
+which *metric* (hop count vs. longest path, or a future third option) is
+reported based on which one happens to land closer to 3 for a given `k` —
+report what the measurement shows, not the reading that flatters the
+hypothesis.
 
 ## Keeping this file current
 

@@ -45,10 +45,13 @@ growth-exponent measurement, so the regimes can be compared directly:
   `k` of existing nodes that must form a local antichain (no existing directed
   path between any two of them), maintaining a strict transitive reduction.
   Whether this produces a stable polynomial exponent is answered empirically
-  in `math/tei_shadow_rule_analysis.md` — the short version: it does break the
-  generic saturating-exponential regime, but the measured exponent drifts with
-  hop depth rather than stabilizing, so it does **not** confirm the `N^3`
-  hypothesis as currently implemented.
+  in `math/tei_shadow_rule_analysis.md`, under two different notions of causal
+  depth (`reachable_within_hops`, shortest-path; `reachable_within_depth`,
+  longest-path) — the short version under both: it does break the generic
+  saturating-exponential regime, but the measured exponent does not settle
+  onto a stable value (it drifts upward with hop count, or rises then falls
+  with longest-path depth), so it does **not** confirm the `N^3` hypothesis
+  as currently implemented.
 
 ## Reproducibility
 
@@ -68,9 +71,13 @@ growth-exponent measurement, so the regimes can be compared directly:
    python sim/graph_generators.py --mode random-dag --N 100000 --out-degree 4 --ticks 15 --seed 42 --out data/random_dag.npz
    ```
 
-4. Test the local, non-embedded Causal Shadow Rule:
+4. Test the local, non-embedded Causal Shadow Rule (shortest-path hops by default):
    ```bash
    python sim/graph_generators.py --mode tei-shadow --k 3 --N 100000 --ticks 20 --seed 42 --out data/tei_shadow_k3.npz
+   ```
+   Or re-read the same rule using longest-path depth instead:
+   ```bash
+   python sim/graph_generators.py --mode tei-shadow --k 3 --N 100000 --ticks 300 --depth-metric longest --seed 42 --out data/tei_shadow_k3_longest.npz
    ```
 
 5. Run unit tests:
