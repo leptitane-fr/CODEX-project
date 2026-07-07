@@ -70,8 +70,12 @@ growth-exponent measurement, so the regimes can be compared directly:
   antichain of an Alexandrov interval, whose exponent estimates the *spatial*
   dimension `d-1` without the worldline chain contaminating it). That fixes
   the `background_ratio` pathology — the width exponent is invariant under it —
-  but the exponent still depends on `k` and still drifts, so it too does not
-  yield a stable emergent dimension. See `math/event_driven_shadow_analysis.md`.
+  but the exponent still depends on `k` and still drifts. A diagnostic pass
+  then pins the cause: the Observer's transverse width **collapses as it ages**
+  (it decouples from the background flux), so the asymptotic emergent spatial
+  dimension is effectively 0 — a bare 1D worldline — and the rich early-time
+  width is a transient of birth, not a dimension. See
+  `math/event_driven_shadow_analysis.md`.
 
 ## Reproducibility
 

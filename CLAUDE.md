@@ -123,13 +123,20 @@ A follow-up (same file) changes the *observable* rather than the generator:
 antichain) of an Alexandrov interval, whose exponent estimates the spatial
 dimension `d-1` without the worldline chain in the floor. This genuinely
 fixes the `background_ratio` pathology (the width exponent *is* invariant
-under it), but the exponent still depends on `k` and still drifts, so it
-still does not give a stable emergent dimension. Note the disqualified
-near-hit recorded there (k=3 early window gives d-1 ~ 2.0, i.e. d ~ 3, but it
-drifts and is k-specific) — it is documented and defused precisely so no one
-re-reports it as a result. The cheap longest-path-depth-level proxy for width
-was tried and rejected (underestimates the exact max antichain 3-7x); use the
-exact `max_antichain_size`.
+under it), but the exponent still depends on `k` and still drifts. A
+diagnostic pass (same file, no new mechanism) then found the root cause: a
+fixed-height interval slid along the worldline has a transverse width that
+**collapses as the Observer ages** (e.g. k=3: 75 at age 100 down to 4 at age
+1200), heading to the bare-chain floor of 1 for every `k`. The Observer
+*decouples* from the background flux with age, so the asymptotic emergent
+spatial dimension is effectively **0 (a bare 1D worldline)**; the rich
+early-time width (the k=3 d~3 near-hit) is a transient of birth, not a
+dimension — documented and defused so it is never re-reported as a result.
+The cheap longest-path-depth-level proxy for width was tried and rejected
+(underestimates the exact max antichain 3-7x); use the exact
+`max_antichain_size`. The diagnostic also fixed a success criterion for any
+future attraction/curvature mechanism, *before* building it: a **stationary**
+sliding-window width vs age, not a particular exponent value near 3.
 
 ## Keeping this file current
 

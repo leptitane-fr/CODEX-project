@@ -380,3 +380,83 @@ existing delay law rather than a new free knob), which is now worth testing
 *because* we finally have an observable whose exponent is not an artifact of a
 simulation parameter. Whether attraction stabilizes the exponent and removes
 the k-dependence is the open question; it has not been implemented or tested.
+
+## Diagnosing the drift and k-dependence (before adding any new mechanism)
+
+Rather than immediately reaching for attraction, the drift and k-dependence
+were diagnosed on the unchanged generator. Two experiments (8 seeds each,
+`n_ticks=2000`, `warmup=3000`, `walk_hops=8`, `background_ratio=50`):
+
+**(1) Is the drift a finite-run boundary artifact?** The earlier width study
+used `n_ticks=800` and measured up to `t=800`, so `worldline[800]` was the
+last node and the top of the interval `I[wl[0], wl[t]]` was squeezed by the
+end of the run. Re-running with `n_ticks=2000` but measuring only to `t=800`
+(large headroom) gives, for the cone-from-origin width exponent:
+
+| k | early [100-300] | late [300-800] |
+|---|---|---|
+| 2 | 1.909 +- 0.627 | 1.897 +- 0.540 |
+| 3 | 1.955 +- 0.182 | 1.507 +- 0.047 |
+| 4 | 1.220 +- 0.236 | 0.697 +- 0.397 |
+
+For k=2 the early/late values now agree (~1.9) -- part of its earlier
+wobble was the boundary. But for **k=3 and k=4 the drift persists** with full
+headroom (1.96 -> 1.51; 1.22 -> 0.70). So the k=3,4 drift is *not* a boundary
+artifact; it is intrinsic to the dynamics.
+
+**(2) Is the transverse structure stationary along the worldline?** Slide a
+*fixed-height* interval `I[wl[a], wl[a+400]]` (height always 400) along the
+worldline and measure its width vs the anchor age `a`:
+
+| k | a=100 | a=300 | a=500 | a=800 | a=1200 |
+|---|---|---|---|---|---|
+| 2 | 5.5 | 2.2 | 1.6 | 1.2 | 1.0 |
+| 3 | 75.4 | 24.4 | 13.2 | 5.2 | 3.9 |
+| 4 | 114.0 | 39.5 | 17.0 | 6.0 | 2.9 |
+
+This is the decisive diagnostic. The transverse width of a fixed-duration
+worldline segment **collapses as the Observer ages**, monotonically, for every
+`k`, heading toward the bare-chain floor of 1 (roughly a power law, ~a^-0.7
+for k=2 up to ~a^-1.5 for k=4, read off the means above). The process has **no
+steady state**: the Observer progressively *decouples* from the background
+flux. Mechanically this is the transience already suspected in the design
+phase, now measured -- the worldline self-continues into its own freshly
+created frontier, while the background heap fires across an ever-larger graph,
+so the fraction of background events landing near the Observer's current self
+shrinks with age. The tube around the worldline thins to a wire.
+
+**What this explains.** Both puzzles dissolve into this one fact:
+
+- The *drift* of the cone-from-origin exponent (k=3,4) is the integral of a
+  decaying transverse profile: `I[wl[0], wl[t]]` piles up more and more of the
+  thin, old, decoupled worldline as `t` grows, so the width grows sublinearly
+  in the added length and the fitted exponent falls.
+- The *k-dependence* is that `k` sets the *initial* tube thickness (k=4 starts
+  at 114, k=2 at 5.5) and the *decay rate* -- not an asymptotic dimension. All
+  three `k` values are heading to the same floor (width 1). So there is no
+  k-indexed family of stable dimensions; there is one behaviour (collapse) at
+  different starting thicknesses.
+
+**The real verdict on the event-driven generator, sharpened.** The emergent
+*asymptotic* spatial dimension is not merely "unstable" or "k-dependent" -- it
+is **zero**: the Observer's transverse extent decays to a bare 1D worldline as
+it ages. The rich early-time width (~t^2 for k=3, the seductive d~3 near-hit)
+is a *transient of birth*, not a dimension: it is the thick coupling the
+Observer has while still embedded in the warmed-up region it was born into,
+and it washes out as the Observer escapes into its own future.
+
+**What this tells axis 1 to do (a sharpened target, not a solution).** The
+missing ingredient is not "more branching" -- the early-time branching is
+already ~t^2. It is *persistence of transverse coupling against age*: something
+must keep pulling background flux into the Observer's neighbourhood as it moves
+forward, so the sliding-window width in experiment (2) becomes **stationary**
+(flat vs `a`) instead of collapsing. That is exactly what a charge-biased,
+attractive routing of the flux is meant to do -- make the worldline a
+persistent attractor (a "massive" filament, in the TEI reading) that the
+surrounding flux keeps re-coupling to instead of draining away from. The
+diagnostic thus gives axis 1 a concrete, falsifiable success criterion defined
+*before* it is built: **a flat `W_L(a)` vs age**, not any particular exponent
+value. If attraction cannot flatten that curve, it has not produced a space,
+whatever exponent it prints -- and if it can, the exponent it then yields is
+worth measuring. This keeps the next step honest: the target is stationarity,
+fixed in advance, not a number near 3.
