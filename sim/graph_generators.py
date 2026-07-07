@@ -154,12 +154,53 @@ def causal_future_mask(points, origin_index):
 
 
 def reachable_within_hops(graph, origin, max_hops):
-    """Cumulative count of nodes reachable from `origin` within each hop count 1..max_hops."""
+    """Cumulative count of nodes reachable from `origin` within each hop count 1..max_hops.
+
+    Hop count is the *shortest*-path distance. In a graph with no embedded
+    metric this is a convenient default, but it is not the only defensible
+    notion of causal depth -- see `reachable_within_depth` for the
+    longest-path alternative and why it matters for `generate_tei_shadow_graph`.
+    """
     lengths = nx.single_source_shortest_path_length(graph, origin, cutoff=max_hops)
     counts = np.zeros(max_hops, dtype=int)
     for hop in lengths.values():
         if hop > 0:
             counts[hop - 1:] += 1
+    return counts
+
+
+def longest_path_depths(graph, origin):
+    """Longest directed path length (edge count) from `origin` to each of its descendants.
+
+    If every edge is itself a relay delay -- a unit of sequential computation
+    that must complete before its target event can occur -- then an event is
+    only reached once *every* instruction chain leading to it has finished,
+    including the slowest one. The shortest path is a classical geometric
+    shortcut with no principled meaning in a purely relational graph that has
+    no embedded metric to justify preferring it; the longest path from the
+    origin is the "proper time" analogue used here instead.
+
+    Computed by dynamic programming over a topological order of the subgraph
+    reachable from `origin` (well-defined because the graph is a DAG).
+    """
+    reachable = nx.descendants(graph, origin)
+    reachable.add(origin)
+    subgraph = graph.subgraph(reachable)
+    depth = {origin: 0}
+    for node in nx.topological_sort(subgraph):
+        if node == origin:
+            continue
+        depth[node] = max(depth[parent] for parent in subgraph.predecessors(node)) + 1
+    return depth
+
+
+def reachable_within_depth(graph, origin, max_depth):
+    """Cumulative count of nodes at longest-path depth <= d, for d in 1..max_depth."""
+    depths = longest_path_depths(graph, origin)
+    counts = np.zeros(max_depth, dtype=int)
+    for depth in depths.values():
+        if 0 < depth <= max_depth:
+            counts[depth - 1:] += 1
     return counts
 
 
@@ -203,17 +244,26 @@ def main():
     parser.add_argument("--k", type=int, default=3, help="Max valence / antichain size (tei-shadow mode)")
     parser.add_argument("--valence", type=int, default=None, help="Parent-selection budget per node (tei-shadow mode, default: k)")
     parser.add_argument("--ticks", type=int, default=20, help="Number of tick buckets to measure")
+    parser.add_argument(
+        "--depth-metric",
+        choices=["shortest", "longest"],
+        default="shortest",
+        help="Notion of causal depth for random-dag/tei-shadow modes (see reachable_within_hops vs reachable_within_depth)",
+    )
     parser.add_argument("--window-frac", type=float, default=0.3, help="Analysis window fraction (sprinkling mode)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out", type=str, default=None, help="Path to save counts as .npz")
     args = parser.parse_args()
 
-    if args.mode == "random-dag":
-        graph = generate_random_dag(args.N, args.out_degree, seed=args.seed)
-        counts = reachable_within_hops(graph, origin=0, max_hops=args.ticks)
-    elif args.mode == "tei-shadow":
-        graph = generate_tei_shadow_graph(args.N, args.k, valence=args.valence, seed=args.seed)
-        counts = reachable_within_hops(graph, origin=0, max_hops=args.ticks)
+    if args.mode in ("random-dag", "tei-shadow"):
+        if args.mode == "random-dag":
+            graph = generate_random_dag(args.N, args.out_degree, seed=args.seed)
+        else:
+            graph = generate_tei_shadow_graph(args.N, args.k, valence=args.valence, seed=args.seed)
+        if args.depth_metric == "shortest":
+            counts = reachable_within_hops(graph, origin=0, max_hops=args.ticks)
+        else:
+            counts = reachable_within_depth(graph, origin=0, max_depth=args.ticks)
     else:
         points = sprinkle_minkowski(args.N, args.dim, seed=args.seed)
         origin_index = int(np.argmin(points[:, 0]))

@@ -7,6 +7,8 @@ from sim.graph_generators import (
     fit_growth_exponent,
     generate_random_dag,
     generate_tei_shadow_graph,
+    longest_path_depths,
+    reachable_within_depth,
     reachable_within_hops,
     reachable_within_ticks,
     sprinkle_minkowski,
@@ -92,4 +94,26 @@ def test_tei_shadow_graph_respects_causal_shadow_rule(k):
 def test_tei_shadow_graph_reachable_count_is_monotonic():
     graph = generate_tei_shadow_graph(n_nodes=20_000, k=3, seed=42)
     counts = reachable_within_hops(graph, origin=0, max_hops=30)
+    assert np.all(np.diff(counts) >= 0)
+
+
+def test_longest_path_depths_prefers_longer_chains_over_shortcuts():
+    # 0 -> 2 directly, and also 0 -> 1 -> 2: the shortest path to 2 is 1 hop,
+    # but the longest directed path from 0 is 2 hops (via node 1).
+    graph = nx.DiGraph([(0, 1), (1, 2), (0, 2)])
+    depths = longest_path_depths(graph, origin=0)
+    assert depths == {0: 0, 1: 1, 2: 2}
+
+
+def test_reachable_within_depth_uses_longest_path():
+    graph = nx.DiGraph([(0, 1), (1, 2), (0, 2)])
+    counts = reachable_within_depth(graph, origin=0, max_depth=3)
+    # depth 1: only node 1 has been reached; depth >= 2: nodes 1 and 2.
+    assert counts.tolist() == [1, 2, 2]
+
+
+@pytest.mark.parametrize("k", [2, 3, 4])
+def test_tei_shadow_graph_reachable_count_is_monotonic_by_longest_path(k):
+    graph = generate_tei_shadow_graph(n_nodes=20_000, k=k, seed=42)
+    counts = reachable_within_depth(graph, origin=0, max_depth=100)
     assert np.all(np.diff(counts) >= 0)
