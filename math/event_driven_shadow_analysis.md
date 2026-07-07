@@ -557,3 +557,97 @@ routing, retains a nontrivial stationary width where the open chain could
 not. That is an ontological redesign of what "the Observer" is, not a
 parameter fix, and it is exactly the distinction (open motif = light, closed
 motif = matter) that the theory itself insists on.
+
+## v0.7 — the braided closed motif: matter persists, but still casts no halo
+
+That redesign has now been built (`generate_braided_motif_graph`) and run
+through a pre-registered A/B study. Architecture in brief (full details in
+the generator's docstring): the Observer is a worldtube of generations, each
+an antichain of `motif_width` (W) nodes; each new node takes 2 distinct
+internal parents from the previous generation (the braid -- the minimum
+closure, since one internal parent un-braids the tube into W photon chains)
+plus `k-2` capture attempts from the background flux under the usual
+independence check. Entropy is the generational rotation itself. Structural
+prediction recorded before measurement: **k=2 cannot make matter** (braiding
+consumes both slots -- a sealed crystal with no metabolism; test-covered).
+W is the motif's mass, swept over {2, 4, 8}, never tuned.
+
+The pre-registered criterion (fixed above, before the run): the gravity
+signal is the **halo** -- the sliding-window width in excess of the identical
+motif under blind routing. The tube's own built-in width proves nothing,
+since we constructed it.
+
+### Raw results (k=3, 5 seeds, n_generations=1600, anchors 100-1200, L=200)
+
+`W_L(a)` = exact max-antichain width of `I[gen_a[0], gen_{a+200}[0]]`:
+
+| W | routing | a=100 | a=300 | a=600 | a=1000 | a=1200 | capture | max charge |
+|---|---|---|---|---|---|---|---|---|
+| 2 | blind      | 16.0 | 5.8 | 2.4 | 2.8 | 2.4 | 100% | 26 |
+| 2 | refractive | 2.2 | 2.0 | 2.0 | 2.0 | 2.0 | 99% | 897 |
+| 4 | blind      | 27.4 | 8.6 | 7.2 | 7.0 | 6.8 | 100% | 24 |
+| 4 | refractive | 4.8 | 6.4 | 5.8 | 5.8 | 5.8 | 99% | 608 |
+| 8 | blind      | 25.4 | 10.8 | 13.6 | 12.8 | 12.8 | 100% | 25 |
+| 8 | refractive | 10.2 | 12.8 | 12.0 | 12.8 | 12.4 | 99% | 700 |
+
+### Reading — one genuine breakthrough, one clean failure
+
+**The breakthrough: closure cures the evaporation.** For the first time in
+this project, a structure holds a *stationary, nontrivial* transverse width
+indefinitely: under both routings, every W settles onto a flat plateau
+(~2, ~6-7, ~12-13 -- roughly 1.6W) instead of collapsing to the bare-chain
+floor of 1 as the open worldline did. The "mort thermique" diagnosed for the
+photon-like chain is cured by closure alone: a braided, metabolizing motif
+does not evaporate. Matter, in the 6ter.3-D sense, now exists and persists in
+this toy model -- with a working metabolism (99-100% of capture slots filled
+at every age, under both routings). Note this plateau is the *body* (tube
+cross-section plus the motif's own recycled flux), which the criterion
+deliberately does not count as a gravity signal.
+
+**The failure: the halo is zero-to-negative at every mass.** At late ages the
+refractive width sits at or slightly below the blind width (2.0 vs 2.4;
+5.8 vs 6.8; 12.4 vs 12.8). Attraction adds nothing around the body -- if
+anything the refractive runs hold slightly *less* recycled flux than the
+blind ones, and the early-age birth halo (16-27 blind) is destroyed rather
+than retained (2-10 refractive). Meanwhile the background hub condensation
+persists unchanged (max charge ~600-900 vs ~25 blind). By the pre-registered
+criterion: **failure**. Refraction still does not make matter hold space, at
+any of the three masses tested; there is no sign of a critical-mass threshold
+within {2, 4, 8}.
+
+### Why — the identity/charge mismatch, one level up
+
+The v0.6 failure was: per-node charge + moving identity = the chain abandons
+its mass at every step. The motif fixes identity (it persists), but rotation
+now caps *residency*: a membrane member serves as a parent for exactly one
+generation (~2-3 charge units) before the motif stops re-executing over it.
+So the motif's mass is large *in aggregate* (W new edges per generation,
+forever) but tiny *per node* -- and the refractive walk weighs **per-node**
+charge. Against background hubs at charge 600-900, a membrane at charge 3 is
+invisible. The collective mass of a rotating dissipative structure is
+unsensed by a per-node-weighted walk: this is the same mismatch as v0.6,
+displaced from "identity moves" to "membership rotates". It appears to be a
+genuine structural tension between entropy (rotation, which the dissipative
+ontology demands) and attractivity (per-node charge accumulation, which
+per-node-weighted refraction demands).
+
+### Status and the honest fork ahead
+
+Recorded per discipline: the closed-motif architecture achieves something
+real and new (persistent matter with stationary nontrivial extent -- the
+first stationary structure this project has produced), and cleanly fails the
+gravity criterion it was built to test. Two directions remain that are
+questions of physics rather than knob-turning, neither implemented:
+
+1. **Critical mass as a sign question**: does the halo (refractive minus
+   blind) turn *positive* at some W (16, 32, ...)? This is a qualitative
+   sign-flip question, not an exponent target, so sweeping W further is
+   legitimate -- but the per-node-charge argument above predicts it will not
+   flip, since membrane charge per node is independent of W.
+2. **What carries mass**: the deeper question the mismatch poses is whether
+   the quantity the walk senses should be per-node charge at all, or
+   something a membrane can actually accumulate (e.g. flux *through* a
+   neighbourhood rather than degree *of* a node). Any such change must be
+   derived from the delay law / ontology first and tested against the same
+   halo criterion -- introduced as a free weighting function, it would be
+   the TEI-3.x failure mode in a new costume.

@@ -150,10 +150,22 @@ drains its neighbourhood instead of filling it (see the identity/charge-
 mismatch section of `math/event_driven_shadow_analysis.md`). Do not try to
 rescue this with a tunable bias exponent, charge cap, or hub suppression —
 each is a free knob whose only role would be steering the outcome (TEI-3.x
-failure mode). The honest open direction recorded there: redesign the
-Observer as a genuinely *closed* motif (a loop re-executing over a persistent
-neighbourhood, per TEI 6ter.3-D) rather than an open chain, and only then
-re-ask the stationarity question.
+failure mode). That redesign has now been built:
+`generate_braided_motif_graph` (v0.7) implements the Observer as a closed
+motif per TEI 6ter.3-D — a worldtube of W-node antichain generations braided
+by 2 internal parents per node, metabolizing via antichain-checked captures,
+with entropy as generational rotation (k=2 is structurally sealed: no
+capture slots — recorded as a prediction, test-covered). The pre-registered
+halo A/B study verdict (same file): **closure cures the evaporation** — the
+motif holds a stationary nontrivial width (~1.6·W) forever, the project's
+first persistent structure — but the **refractive halo is zero-to-negative
+for every W in {2,4,8}**: matter persists and still casts no gravitational
+halo. Root cause recorded: rotation caps per-node residency, so the motif's
+mass is collective but the refractive walk weighs per-node charge — membrane
+members at charge ~3 are invisible next to background hubs at ~600-900. Do
+not "fix" this with a free weighting function on the walk; any change to
+what the walk senses must be derived from the delay law/ontology first, and
+judged by the same halo criterion.
 
 ## Keeping this file current
 

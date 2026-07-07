@@ -83,6 +83,18 @@ growth-exponent measurement, so the regimes can be compared directly:
   even faster (width → 1 immediately). See
   `math/event_driven_shadow_analysis.md` for the full study and the
   identity/charge-mismatch diagnosis.
+- `generate_braided_motif_graph` — the v0.7 answer to that diagnosis: the
+  Observer as a *closed motif* (matter, TEI 6ter.3-D) — a worldtube of
+  W-node antichain generations braided by 2 internal parents per node, with a
+  measured metabolism (background captures under the same antichain rule) and
+  entropy by generational rotation. Structural prediction: k=2 cannot make
+  matter (zero capture slots). Result of the pre-registered halo A/B study:
+  **closure cures the evaporation** — the motif holds a stationary,
+  nontrivial transverse width (~1.6·W) indefinitely under both routings, the
+  first persistent structure in this project — but the refractive **halo is
+  zero-to-negative at every mass tested** (W ∈ {2,4,8}), so matter persists
+  yet still does not gravitationally retain space around its body. Same file
+  for the study and the residency-caps-charge diagnosis.
 
 ## Reproducibility
 
