@@ -375,9 +375,74 @@ def observer_growth_curve(graph, worldline):
     (1-indexed), the count is how many of those descendants already existed
     at the moment `worldline[t]` was created (using node id order, since ids
     are assigned in creation order throughout this module).
+
+    NOTE: this cumulative-cone measure has the worldline's own chain (slope 1)
+    baked into its floor and mixes the timelike "memory" direction with the
+    transverse "spatial" one. The 50-seed study in
+    math/event_driven_shadow_analysis.md shows its exponent depends on the
+    arbitrary `background_ratio` knob, so it does not measure an intrinsic
+    dimension. `interval_width` (below) is the better observable: it isolates
+    the transverse/spacelike direction and its exponent is, unlike this one,
+    invariant under `background_ratio`.
     """
     descendant_ids = sorted(nx.descendants(graph, worldline[0]))
     return np.array([bisect.bisect_right(descendant_ids, node) for node in worldline[1:]])
+
+
+def max_antichain_size(graph):
+    """Exact size of the largest antichain of a DAG (its "width"), via Dilworth.
+
+    Dilworth's theorem: the maximum antichain equals the minimum number of
+    chains needed to cover the poset. For a DAG, that minimum chain cover
+    equals `n - (maximum matching in the bipartite reachability graph)`
+    (Fulkerson), where the reachability graph has an edge u->v' whenever v is
+    reachable from u (the transitive closure). Exact, but O(transitive
+    closure + bipartite matching) -- fine for the modest causal intervals used
+    here, not for the whole graph at large N.
+
+    A cheap proxy (the largest longest-path-depth level set, which is always a
+    valid antichain) was tried first and REJECTED: it underestimates the true
+    width by 3-7x and worsens with interval size (see
+    math/event_driven_shadow_analysis.md). Hence the exact computation here.
+    """
+    closure = nx.transitive_closure_dag(graph)
+    nodes = list(closure.nodes())
+    bip = nx.Graph()
+    left = [("L", u) for u in nodes]
+    bip.add_nodes_from(left, bipartite=0)
+    bip.add_nodes_from([("R", u) for u in nodes], bipartite=1)
+    for u, v in closure.edges():
+        bip.add_edge(("L", u), ("R", v))
+    matching = nx.bipartite.maximum_matching(bip, top_nodes=left)
+    matched = sum(1 for key in matching if key[0] == "L")
+    return len(nodes) - matched
+
+
+def causal_interval(graph, x, y):
+    """Node set of the Alexandrov interval I[x, y] = {z : x <= z <= y}.
+
+    That is: descendants of x (inclusive) that are also ancestors of y
+    (inclusive). Empty/degenerate unless y is reachable from x.
+    """
+    return (nx.descendants(graph, x) | {x}) & (nx.ancestors(graph, y) | {y})
+
+
+def interval_width(graph, x, y):
+    """Transverse spatial width of the causal interval I[x, y]: its max antichain.
+
+    For a causal set faithfully embeddable in `d`-dimensional Minkowski, an
+    interval of height (longest chain) `T` has width ~ `T**(d-1)`, so measuring
+    width vs `T` estimates the emergent *spatial* dimension `d-1` directly --
+    without any embedding, and without the timelike worldline chain
+    contaminating the count (the chain is the interval's height, not its
+    width). This is the observable argued for in
+    math/event_driven_shadow_analysis.md; see that file for what it does and
+    does not establish for the event-driven generator.
+    """
+    interval = causal_interval(graph, x, y)
+    if len(interval) < 2:
+        return 0
+    return max_antichain_size(graph.subgraph(interval))
 
 
 def causal_future_mask(points, origin_index):

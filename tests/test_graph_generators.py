@@ -4,11 +4,14 @@ import pytest
 
 from sim.graph_generators import (
     causal_future_mask,
+    causal_interval,
     fit_growth_exponent,
     generate_event_driven_shadow_graph,
     generate_random_dag,
     generate_tei_shadow_graph,
+    interval_width,
     longest_path_depths,
+    max_antichain_size,
     observer_growth_curve,
     reachable_within_depth,
     reachable_within_hops,
@@ -188,3 +191,64 @@ def test_event_driven_shadow_graph_raises_when_max_nodes_too_small():
         generate_event_driven_shadow_graph(
             n_ticks_observer=50, k=3, warmup_events=300, seed=7, max_nodes=50
         )
+
+
+def test_max_antichain_size_on_a_pure_chain_is_one():
+    chain = nx.DiGraph([(0, 1), (1, 2), (2, 3), (3, 4)])
+    assert max_antichain_size(chain) == 1
+
+
+def test_max_antichain_size_on_a_pure_antichain_is_n():
+    antichain = nx.DiGraph()
+    antichain.add_nodes_from(range(5))
+    assert max_antichain_size(antichain) == 5
+
+
+def test_max_antichain_size_on_a_diamond():
+    # 0 -> {1, 2} -> 3 : the largest antichain is {1, 2}.
+    diamond = nx.DiGraph([(0, 1), (0, 2), (1, 3), (2, 3)])
+    assert max_antichain_size(diamond) == 2
+
+
+def test_max_antichain_size_counts_only_mutually_incomparable_elements():
+    # 0 -> 1 -> 2, plus an isolated pair 3, 4. The largest antichain mixes one
+    # element from the chain with the two isolated ones: e.g. {2, 3, 4} (all
+    # mutually incomparable) -> size 3, not the naive "levels" answer.
+    graph = nx.DiGraph([(0, 1), (1, 2)])
+    graph.add_nodes_from([3, 4])
+    assert max_antichain_size(graph) == 3
+
+
+def test_causal_interval_is_the_diamond_between_endpoints():
+    # 0 -> 1 -> 3 and 0 -> 2 -> 3, plus 4 outside the interval (not below 3).
+    graph = nx.DiGraph([(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)])
+    assert causal_interval(graph, 0, 3) == {0, 1, 2, 3}
+
+
+def test_interval_width_is_the_transverse_max_antichain():
+    graph = nx.DiGraph([(0, 1), (0, 2), (1, 3), (2, 3)])
+    # Interval I[0,3] = {0,1,2,3}; its widest antichain is {1,2}.
+    assert interval_width(graph, 0, 3) == 2
+
+
+def test_interval_width_degenerate_when_endpoint_unreachable():
+    graph = nx.DiGraph([(0, 1)])
+    graph.add_node(2)  # 2 is not reachable from 0
+    assert interval_width(graph, 0, 2) == 0
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3, 4])
+def test_max_antichain_size_matches_bruteforce_on_small_random_dags(seed):
+    # Validate the Dilworth/matching implementation against an exhaustive
+    # largest-antichain search (nx.antichains enumerates every antichain, so it
+    # is only feasible on tiny graphs -- keep this well under ~15 nodes).
+    rng = np.random.default_rng(seed)
+    n = 10
+    graph = nx.DiGraph()
+    graph.add_nodes_from(range(n))
+    for v in range(1, n):
+        for u in range(v):
+            if rng.random() < 0.25:  # only u < v edges => guaranteed acyclic
+                graph.add_edge(u, v)
+    brute = max(len(anti) for anti in nx.antichains(graph))
+    assert max_antichain_size(graph) == brute

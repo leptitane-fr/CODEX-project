@@ -118,6 +118,19 @@ well-defined quantity here. Do not try to rescue this by searching
 parameter-sensitivity table in that file is exactly the evidence that such a
 find would be meaningless (and doing so is the TEI-3.x failure mode).
 
+A follow-up (same file) changes the *observable* rather than the generator:
+`interval_width` / `max_antichain_size` measure the transverse width (max
+antichain) of an Alexandrov interval, whose exponent estimates the spatial
+dimension `d-1` without the worldline chain in the floor. This genuinely
+fixes the `background_ratio` pathology (the width exponent *is* invariant
+under it), but the exponent still depends on `k` and still drifts, so it
+still does not give a stable emergent dimension. Note the disqualified
+near-hit recorded there (k=3 early window gives d-1 ~ 2.0, i.e. d ~ 3, but it
+drifts and is k-specific) — it is documented and defused precisely so no one
+re-reports it as a result. The cheap longest-path-depth-level proxy for width
+was tried and rejected (underestimates the exact max antichain 3-7x); use the
+exact `max_antichain_size`.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

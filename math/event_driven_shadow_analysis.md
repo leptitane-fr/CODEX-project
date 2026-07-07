@@ -264,3 +264,119 @@ local-walk radius being a poor model of "causal neighborhood"?), and (2)
 question whether cumulative causal-cone size is even the right observable, vs.
 some measure that does not have the worldline's own slope-1 chain baked into
 its floor.
+
+## Changing the observable: transverse width instead of cumulative cone
+
+Direction (2) above was pursued next, on the **unchanged** generator (no new
+generative parameter). The cumulative cone conflates two things: the timelike
+"memory" direction (the worldline chain, slope 1 by construction) and the
+transverse "spatial" direction. The standard causal-set way to isolate the
+spatial direction, with no embedding, is the width/height split of an
+Alexandrov interval `I[x,y] = {z : x <= z <= y}`:
+
+- **height** = longest chain in the interval = proper time; here it is exactly
+  `t` for `I[worldline[0], worldline[t]]`, since the worldline is the longest
+  chain.
+- **width** = maximum antichain (largest set of mutually spacelike events).
+  For a faithfully `d`-embeddable interval, width ~ height^(d-1), so the
+  width-vs-`t` exponent estimates the emergent *spatial* dimension `d-1`
+  directly. The worldline chain is the height, not the width, so its slope-1
+  contribution is removed from this measure by construction.
+
+Implemented as `max_antichain_size` / `causal_interval` / `interval_width` in
+`sim/graph_generators.py`.
+
+### A rejected proxy (methodological note)
+
+The width was first proxied by the largest longest-path-depth level set (each
+level is a provable antichain, and it is cheap). Validated against the exact
+maximum antichain (Dilworth: `n - max bipartite matching on the reachability
+relation`), **the proxy underestimates the true width by 3-7x, and the error
+grows with interval size** (ratio 0.67 at ~100 nodes down to 0.14 at ~580
+nodes). A maximum antichain is not in general a single graded level -- it
+pulls mutually-incomparable events from many longest-path depths. The proxy
+was discarded; all numbers below use the exact computation. (This is exactly
+why the level-set "saturation" seen in a first pass was an artifact, not a
+real ceiling: the true width keeps growing.)
+
+### Raw results — exact interval width vs proper time (30 seeds)
+
+Fixed `warmup_events=3000, walk_hops=8, background_ratio=50`; mean exact width
+of `I[worldline[0], worldline[t]]` over 30 seeds:
+
+| k | t=100 | t=150 | t=200 | t=300 | t=400 | t=600 | t=800 |
+|---|---|---|---|---|---|---|---|
+| 2 | 1.7 | 2.7 | 4.9 | 9.7 | 18.1 | 39.7 | 68.7 |
+| 3 | 16.9 | 39.2 | 71.2 | 149.7 | 240.2 | 441.8 | 646.4 |
+| 4 | 45.2 | 75.3 | 101.1 | 146.8 | 186.9 | 254.8 | 300.9 |
+
+Width-vs-`t` log-log exponent (= d-1 estimate), mean +- std over 30 seeds:
+
+| k | full [100-800] | early [100-300] | late [300-800] |
+|---|---|---|---|
+| 2 | 1.779 +- 0.554 | 1.588 +- 0.627 | 1.865 +- 0.743 |
+| 3 | 1.770 +- 0.128 | 2.027 +- 0.239 | 1.495 +- 0.098 |
+| 4 | 0.718 +- 0.467 | 0.939 +- 0.507 | 0.501 +- 0.462 |
+
+### The decisive test — is the width exponent background_ratio-invariant?
+
+This is the test the cumulative cone failed (its exponent slid 1.37 -> 1.19
+as `background_ratio` rose 50 -> 300). k=3, 12 seeds, exponent over [100-400]:
+
+| background_ratio | width exponent (d-1) | mean width @[100,200,400] |
+|---|---|---|
+| 50  | 1.866 +- 0.148 | 19, 75, 243 |
+| 150 | 1.840 +- 0.134 | 38, 152, 487 |
+| 400 | 1.824 +- 0.142 | 77, 305, 945 |
+
+**The exponent is invariant** (it moves 2% across an 8x change in the knob,
+well inside the error bars), while the *amplitude* scales roughly linearly
+with `background_ratio`. The knob sets how much flux there is (the prefactor),
+not the scaling (the exponent). This is a genuine, qualitative improvement
+over the cone: swapping the observable removed the parameter pathology exactly
+as the theory predicted it should.
+
+### Reading of the width results — one criterion fixed, two still failing
+
+Recall the three criteria a real emergent dimension must meet: the exponent
+must be (a) stable in proper time, (b) independent of `k`, (c) independent of
+the simulation knobs. Scoring the width observable:
+
+- **(c) knob-independence: now PASSED.** The background_ratio pathology that
+  killed the cone is gone. This also corrects an earlier interpretation: the
+  cone's ~1.5 was read as "a brownian tube around a 1D wire, spatial dimension
+  ~0.5." That was an artifact of the cumulative measure. The *transverse*
+  width actually grows as ~t^1.8 for k=2,3 -- far richer than brownian
+  (t^0.5). The observable choice changed the qualitative conclusion, which is
+  itself the lesson.
+- **(b) k-independence: still FAILS.** k=2 and k=3 sit near d-1 ~ 1.8 but k=4
+  is much lower (~0.7), and the early-window values (1.59, 2.03, 0.94) plainly
+  disagree. A dimension cannot depend on the arbitrary antichain-size `k`.
+- **(a) stability: still FAILS for k=3, 4.** Both drift downward with proper
+  time (k=3: 2.03 -> 1.50; k=4: 0.94 -> 0.50). Only k=2 is arguably stable,
+  but with error bars too large (+-0.6) to claim anything.
+
+**On the k=3 early-window value of d-1 ~ 2.03 (i.e. d ~ 3.0):** this is
+exactly the seductive near-hit the project's discipline exists to neutralize.
+It is disqualified three ways over, and must not be promoted: it is the
+*early* window only (drifts down to 1.50 by late `t`), it is `k`-specific
+(k=2 and k=4 give nothing near it), and a drifting, k-dependent number is not
+a measured dimension no matter how close to 3 it lands in one window. It is
+recorded here precisely so it is on the table and defused, not buried and not
+celebrated.
+
+### Verdict on axis 2
+
+Changing the observable from cumulative cone to transverse interval width was
+the right move and it did real work: it removed the `background_ratio`
+pathology, and it revealed that the transverse structure is substantially
+richer (~t^1.8) than the cone's brownian-looking ~t^1.5 suggested. But it did
+**not**, on its own, produce a stable, k-independent emergent dimension: the
+width exponent still depends on `k` and still drifts with proper time for
+k=3,4. So the observable was necessary but not sufficient. This is the clean
+setup for the second ontological axis (a local, charge-biased routing of the
+flux -- "attraction/curvature" -- with the bias strength fixed by the
+existing delay law rather than a new free knob), which is now worth testing
+*because* we finally have an observable whose exponent is not an artifact of a
+simulation parameter. Whether attraction stabilizes the exponent and removes
+the k-dependence is the open question; it has not been implemented or tested.
