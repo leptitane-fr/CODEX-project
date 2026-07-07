@@ -104,12 +104,19 @@ hypothesis.
 A second attempt, `generate_event_driven_shadow_graph`, removes two remaining
 god's-eye-view assumptions from the first generator (a global tick loop, and
 parent sampling from the entire front). Its architecture is validated and
-tested, but **no multi-seed growth-exponent study has been run on it yet** —
-`math/event_driven_shadow_analysis.md` documents the design process only
+tested, and a 50-seed statistical study has now been run —
+`math/event_driven_shadow_analysis.md` documents both the design process
 (including two attempts that failed outright: a fixed-node Observer, rather
 than a self-continuing worldline, could not accumulate ticks under either a
-global heap or a local random walk). Don't cite a growth exponent from this
-generator until that study exists.
+global heap or a local random walk) and the study results. The verdict is
+**negative and stronger than for `tei-shadow`**: the Observer's causal-cone
+exponent is ~1.0-1.5 (never near 3), depends on `k`, drifts toward 1 for
+k=3/4, and is not even independent of the arbitrary `background_ratio`
+simulation parameter — meaning "the exponent of the rule" is not a
+well-defined quantity here. Do not try to rescue this by searching
+`(k, background_ratio, walk_hops)` space for a triple that lands near 3; the
+parameter-sensitivity table in that file is exactly the evidence that such a
+find would be meaningless (and doing so is the TEI-3.x failure mode).
 
 ## Keeping this file current
 

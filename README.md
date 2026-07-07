@@ -61,8 +61,11 @@ growth-exponent measurement, so the regimes can be compared directly:
   view — modeled, per TEI 6ter.3-D, as a self-continuing worldline rather
   than a fixed node, since a fixed node was empirically shown not to work
   (see `math/event_driven_shadow_analysis.md` for that design history,
-  including two dead ends). Architecture validated and tested; a full
-  multi-seed exponent study has not been run yet.
+  including two dead ends). A 50-seed study (also in that file) gives a clear
+  **negative** verdict: the Observer's causal-cone exponent is ~1.0-1.5 (never
+  near 3), depends on `k`, drifts toward 1 for k=3/4, and is not even
+  independent of the arbitrary `background_ratio` parameter — so it does not
+  confirm `N^3` either.
 
 ## Reproducibility
 
