@@ -186,6 +186,23 @@ generations re-enter the event heap — judged by the same halo criterion,
 with runaway self-interaction (a solipsist bubble capturing only its own
 wake) named in advance as the failure mode to watch.
 
+Structural radiation was then implemented (retirement = generation bump +
+reschedule, same operation as consumption; no node in the universe is
+exempt from the heap anymore) and the halo verdict is **negative for the
+third time** (same file). Radiation itself works — under blind routing the
+own-wake fraction of belt anchors jumps to 49-59% — but refraction still
+sends the walk to the incumbent hub class (own-wake 0-7%): a first-mover
+charge monopoly that no newly emitted population can catch under
+p ∝ 1+charge routing. Sharper still: even with the loop closing half the
+time (blind), the width plateau did not move — flagged as a possible
+*throughput bound* (one body's interval can only be populated by its own
+constant-rate excursions, so a single motif's self-halo may be structurally
+unable to grow). The recorded candidate next probe is a change of
+observable, not mechanism: **two motifs, and the width of the interval
+between them** (TEI 6bis.4's own Earth-Mars support question). Do not add
+routing-law patches (wake boosts, hub caps, age weighting) to force the
+third A/B green — that is the TEI-3.x failure mode.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

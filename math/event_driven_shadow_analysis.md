@@ -748,3 +748,84 @@ walk close the emit-capture loop that the interval width measures. Success
 criterion unchanged (halo A/B). Failure modes to name at design time; the
 obvious one is runaway self-interaction (the motif capturing only its own
 wake and decoupling from the universe -- a solipsist bubble).
+
+## Structural radiation: the wake exists, refraction still ignores it
+
+The last exemption was removed (commit "Structural radiation"): on rotation,
+retired generations re-enter the event heap (generation bump + reschedule at
+`background_time + delay(charge)` -- the same operation as capture
+consumption, so a single instruction never fires twice). Entropy and
+emission become the same event, per TEI 6bis.2. The A/B study was rerun
+identically, now with the solipsist monitor (own-wake fraction of belt
+anchors, i.e. anchors descending from `gens[50][0]`; pre-radiation baseline
+was 38% blind / 1% refractive).
+
+### Raw results (k=3, 5 seeds, 1600 generations, anchors 100-1200, L=200)
+
+| W | routing | W_L: 100 | 300 | 600 | 1000 | 1200 | capture e/l | belt mean/max | own-wake | max charge |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | blind      | 14.8 | 4.8 | 3.0 | 2.4 | 2.2 | 100%/100% | 4.3 / 20 | **59%** | 28 |
+| 2 | refractive | 2.4 | 2.0 | 2.0 | 2.0 | 2.0 | 99%/79% | 9.5 / 434 | **5%** | 826 |
+| 4 | blind      | 20.0 | 5.6 | 6.0 | 4.4 | 6.0 | 100%/100% | 4.5 / 22 | **49%** | 24 |
+| 4 | refractive | 6.2 | 5.4 | 5.8 | 5.8 | 5.6 | 99%/99% | 9.0 / 494 | **7%** | 559 |
+| 8 | blind      | 15.2 | 13.6 | 12.8 | 10.2 | 12.8 | 100%/100% | 8.1 / 21 | 9% | 25 |
+| 8 | refractive | 13.0 | 12.4 | 12.4 | 12.6 | 12.4 | 99%/99% | 37.5 / 535 | **0%** | 657 |
+
+### Reading
+
+**Halo verdict: negative for the third time.** Late-age refractive minus
+blind is ~-0.3 (W=2), ~-0.4 (W=4), ~-0.4 (W=8). Same magnitude as both
+previous studies.
+
+**Radiation itself works as designed.** Under blind routing the own-wake
+fraction of belt anchors jumps from the pre-radiation 38% to 49-59% (W=2,4):
+the motif's emitted wake is real, present in its neighbourhood, and gets
+re-captured when the walk is unbiased. The emit-and-reabsorb loop that the
+interval width counts is now closing half the time -- under *blind* routing.
+
+**But refraction still refuses to close it: own-wake 0-7%.** The radiated
+wake is young and light (charge ~3-4 at birth); the incumbent hub class
+(charge 434-826, seeded during warmup and compounding ever since) wins every
+weighted step. This is a first-mover monopoly: charge advantage under
+`p ~ 1+charge` routing compounds multiplicatively, so no newly emitted
+population can ever catch up with the incumbents, no matter how well-placed
+it is. Radiation put the right flux in the right place; the routing law
+still sends gravity's pull toward the oldest strangers in the universe.
+
+**And a sharper structural observation, visible only now:** even under blind
+routing, where the loop closes 49-59% of the time, the late-age width
+plateau did not budge (still ~2.2 / ~6 / ~12.8 -- the same ~1.6W as with no
+radiation and no consumption). Recycling *fraction* rose; width did not.
+This suggests (interpretation, flagged as such) a **throughput bound**: the
+interval between two generations can only be populated by flux that
+actually makes an out-and-back trip, and the motif's emission/capture
+throughput is constant per generation (~O(W) excursions, each short-lived).
+Constant concurrency of excursions = constant cross-section = width pinned
+at ~1.6W regardless of interval height. If this reading is right, no
+routing law whatsoever can make a *single* motif's self-halo grow with
+proper time: one body's atmosphere is rate-limited by that body's own
+constant metabolism. In a sprinkled causal set the diamond fills up because
+the vacuum's causal relations all exist geometrically; here, relations
+exist only where edges were actually created, and one body can only create
+O(W) of them per tick.
+
+### Where this leaves the gravity question
+
+Three ontologically-motivated mechanisms are now in place and validated at
+the mechanism level (closure -> persistence; consumption -> the charged slow
+belt, Canal 1; radiation -> a real, re-capturable wake), and the
+pre-registered halo criterion has failed three times, each time for a
+different, precisely identified reason (no mass retention; pure absorber;
+incumbent monopoly + throughput bound). The pattern of the three failures
+points away from "one more mechanism" and toward the possibility that the
+*question* -- a single body dressing itself in space -- is the wrong probe.
+TEI's own text says as much: 6bis.4 defines the medium as the saturated flux
+of *all* bodies ("le tissu, c'est le flux lui-meme", every body radiating),
+and poses as its central open support question how a stable *Earth-Mars*
+relation is maintained across perishable flux -- a **two-body** question.
+The natural next probe, not implemented here: two motifs, and the interval
+*between* them -- does the inter-body space (width of I[member of motif A,
+member of motif B]) behave differently from the self-halo that has now
+failed three times? That is a change of observable (like the cone -> width
+move, which paid off), not a new mechanism, and it is the question the
+theory itself asks.
