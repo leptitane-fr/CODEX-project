@@ -451,7 +451,15 @@ def generate_braided_motif_graph(
       the background flux, subject to the same mutual-independence check as
       every other parent in this module. Captures can fail the check; the
       realized capture rate is therefore a *measured* metabolic property of
-      the run (returned as `capture_counts`), never a decreed one.
+      the run (returned as `capture_counts`), never a decreed one. Capture
+      *consumes* its prey (conservation law, TEI 7.7: an instruction is
+      conserved until interpretation -- interpretation spends it): the
+      captured node's pending background event is invalidated and rescheduled
+      after a charge-grown delay, exactly the treatment every background
+      event already applies to its own parents. An earlier version skimmed
+      without consuming (the captured node kept its agenda untouched), which
+      left the surrounding medium tension-free -- see the radial-anisotropy
+      section of math/event_driven_shadow_analysis.md.
 
     Entropy is the generational rotation itself: once generation g+1 exists,
     the motif never re-executes over generation g again. Old members are not
@@ -559,6 +567,7 @@ def generate_braided_motif_graph(
     external_time = np.zeros(n_generations)
     capture_counts = np.zeros(n_generations, dtype=int)
     worldtube_time = t
+    background_time = t  # latest known background-clock time, for consumption rescheduling
 
     # --- Phase 3: braided advance, interleaved with background growth ---
     for g in range(n_generations):
@@ -575,9 +584,9 @@ def generate_braided_motif_graph(
                 )
             picks = rng.choice(len(previous), size=internal_parents, replace=False)
             chosen = [previous[i] for i in picks]
+            captured_nodes = []
             attempts = 0
-            captured = 0
-            while captured < k - internal_parents and attempts < max_attempts:
+            while len(captured_nodes) < k - internal_parents and attempts < max_attempts:
                 candidate = _local_walk_candidate(
                     graph, chosen[0], rng, walk_hops, charge=routing_charge
                 )
@@ -600,8 +609,8 @@ def generate_braided_motif_graph(
                 )
                 if independent:
                     chosen.append(candidate)
-                    captured += 1
-            captures += captured
+                    captured_nodes.append(candidate)
+            captures += len(captured_nodes)
 
             new_node = next_id
             next_id += 1
@@ -617,6 +626,25 @@ def generate_braided_motif_graph(
             new_generation_set.add(new_node)
             parent_charges.extend(charge[p] for p in chosen)
 
+            # Consumption (conservation law, TEI 7.7: an instruction is
+            # conserved *until interpretation* -- interpretation spends it).
+            # Capture applies to its prey exactly what every background event
+            # already applies to its parents: invalidate the pending event
+            # (generation bump) and reschedule after a charge-grown delay.
+            # Without this, captured flux was interpreted AND kept its own
+            # agenda intact -- double-counting that left the motif skimming
+            # the medium without ever taking anything from it (no tension, no
+            # accretion). Internal membrane parents are left as before:
+            # rotation already retires them, and whether the motif's spent
+            # membrane should also re-enter the flux (radiation) is a separate
+            # question, deliberately not part of this fix.
+            for captured in captured_nodes:
+                current_gen[captured] += 1
+                heapq.heappush(
+                    heap,
+                    (background_time + delay(charge[captured]), captured, current_gen[captured]),
+                )
+
         generations.append(new_generation)
         capture_counts[g] = captures
         worldtube_time += delay(float(np.mean(parent_charges)))
@@ -628,6 +656,7 @@ def generate_braided_motif_graph(
             t2, trigger, gen = heapq.heappop(heap)
             if gen != current_gen[trigger]:
                 continue
+            background_time = t2
             fire_background_event(t2, trigger)
 
     return graph, generations, external_time, capture_counts
