@@ -934,3 +934,95 @@ interaction range 2) or a mechanism that stabilizes approach short of merger
 search. What exists now, honestly stated: matter that persists, dilates
 time, radiates, attracts other matter under the refraction law, falls
 together, and merges. What does not exist: space.
+
+## Metrology: the recession proven, the horizon measured, the infall resolved
+
+Strictly observational instruments were added (no dynamics change):
+`id_watermarks` (ids are creation-ordered and edges only point old -> new, so
+the subgraph on ids < watermark[g] is exactly the universe as it existed at
+tick g -- the past metric is reconstructible, and later shortcuts cannot leak
+backward), `intertube_metrics` (instantaneous membrane-to-membrane hop
+distance d(g) + near-geodesic corridor volume V(g)), and `wake_gap` (distance
+from one body's living membrane to the nearest node of the other's radiated
+wake -- the signal-vs-metric race). Data acquired on the v2 runs (same
+protocol, same seeds).
+
+### The recession is real, linear, and routing-independent
+
+All four silent runs (blind D=6 seeds 1-3, refractive D=6 seed 2), born 6
+hops apart:
+
+| g | 100 | 300 | 600 | 900 | 1200 |
+|---|---|---|---|---|---|
+| d(g), all four runs | 94-110 | 316-329 | 642-660 | 973-979 | 1298-1305 |
+
+**d(g) = ~1.08 g**: constant-velocity recession at ~1.08 hops per
+generation, identical under blind and refractive routing. Mechanically: each
+living membrane burrows 1 hop per generation away from its birth cluster
+(the tube advance is kinematic), for a naive 2g+6; the growing medium knits
+shortcuts that recover ~46% of that; the net is ~1.08g. The corridor volume
+V(g) grows linearly too (~7 nodes/generation): the space between the bodies
+fills at constant rate while stretching faster. This is not a Hubble law
+(v independent of d at these scales); it is constant-speed kinematic
+recession, and refraction does nothing to slow it.
+
+### The race: the metric outruns the signal 2:1 -- an event horizon
+
+Refractive D=7 seed 1 (the sustained-coupling-without-contact run), tracking
+the gap between B's living membrane and the nearest node of the wake of A's
+generation 50:
+
+| dg (generations after 50) | 25 | 50 | 100 | 200 | 400 | 800 | 1100 |
+|---|---|---|---|---|---|---|---|
+| gap (hops) | 8 | 12 | 39 | 95 | 206 | 423 | 585 |
+
+The wake got within 8 hops of B early (hence the 106 fossil captures around
+generation 50), then the gap grew *linearly forever* at ~0.55 hops/gen.
+Since B recedes at ~1.08, the wake front advances at ~0.53 hops/gen:
+**the metric expands about twice as fast as radiation propagates
+(1.08 vs 0.53)**. The requested proof is delivered, with a stronger
+corollary: from A's generation 400, the wake is born already 388 hops behind
+B and never closes -- every generation emitted after the early window
+radiates into a **causal event horizon**. This is exactly why sustained
+coupling only ever reached the partner's fossil past: the early wake was the
+only wake that ever stood within reach.
+
+### Infall kinematics: not constant acceleration -- a three-phase zipper
+
+d(g) for the three dynamic refractive mergers (dense sampling):
+
+- D=7 seed 3 (wake@15, contact@60): 6, 12 | 11, 8, 9, **3** | ~1-2 fused.
+- D=7 seed 4 (wake@11, contact@124): 4, 5, 7, 7, 11 | 10, 8, 7, 5, 6, 4, 4,
+  **2** | ~1-2 fused.
+- D=6 seed 4 (wake@29, contact@95): 5, 6, 6, 8, 15 | 10, 8, 8, 5, **1** |
+  ~1-2 fused.
+
+Three phases, cleanly resolved: (1) **recession** -- the pair initially
+separates like any silent run; (2) **turnaround** at the first wake bridge
+(the capture edges themselves shorten the metric); (3) **roughly linear
+closure** (~0.1-0.3 hops/gen net against an ambient recession of ~1.08, so
+the knitting outpulls expansion by ~1.2-1.4 hops/gen) down to contact and
+fusion (d pinned at 1-2, the born-touching control's flat profile). The
+answer to "is it constant gravitational acceleration?" is **no**: the curve
+is not parabolic. Infall here is a *capture cascade* -- each cross-body
+capture inserts an edge that contracts the metric directly, producing
+constant-velocity closure. Gravity in this model pulls by **topological
+knitting**, not by accumulating momentum: a zipper, not a ballistic fall.
+
+### The bimodality, mechanically explained
+
+The silence/merger coin-flip is a race at birth: the first wake bridge must
+form while the gap is still within walk reach (first couplings at
+generations 11-29 in all three mergers), before recession (~1.08 hops/gen,
+starting immediately) carries the partner past the horizon. Win the race
+early and the zipper closes; lose it once and the 2:1 expansion-to-signal
+ratio guarantees permanent separation. There is no third outcome at this
+scale -- which is precisely why no stationary inter-body channel was found:
+the model's expansion admits no static equilibrium between bound and lost.
+
+Honest limits: single seeds per kinematic curve (the phases are consistent
+across all three mergers, but rates carry seed noise); hop distance is the
+only metric available (no embedding); and the recession rate is set by the
+tube-advance kinematics of this generator, so its numeric value (1.08) is
+architecture-specific even though the horizon phenomenon (expansion vs
+signal-speed competition) is structural.

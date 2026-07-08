@@ -220,6 +220,23 @@ the model. Do not force the channel by knob search; the recorded obstacles
 are the universe's small diameter at metabolism-compatible range and the
 absence of anything that stabilizes approach short of merger.
 
+A purely observational metrology pass (same file, last section;
+`id_watermarks` + `_hops_at_time` + `intertube_metrics` + `wake_gap`
+reconstruct the past metric from creation-ordered ids) then measured all
+of it: the recession is real, linear (~1.08 hops/generation) and
+routing-independent; the radiated wake front advances at only ~0.53
+hops/generation, so **the metric outruns the signal 2:1** and every
+generation emitted after the early window radiates into a causal event
+horizon (measured: the wake of generation 400 is born 388 hops behind the
+partner and never closes) — which is why coupling only ever reaches the
+partner's fossil past. Infall is NOT constant acceleration: three phases
+(recession, turnaround at the first wake bridge, near-linear closure by
+capture-edge knitting — a zipper, not a ballistic fall), and the
+silence-vs-merger bimodality is a race at birth (bridge must form within
+~30 generations, before recession carries the partner past the horizon).
+The recession's numeric rate is architecture-specific (tube-advance
+kinematics); the horizon phenomenon is structural.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow
