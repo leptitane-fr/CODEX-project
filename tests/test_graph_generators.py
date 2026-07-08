@@ -462,3 +462,36 @@ def test_first_contact_lag_on_handbuilt_graph():
     assert first_contact_lag(graph, gens_a, gens_b, anchor=0, max_lag=2) == 1
     # From B toward A there is no path at all: disconnected within horizon.
     assert first_contact_lag(graph, gens_b, gens_a, anchor=0, max_lag=2) is None
+
+
+def test_hops_at_time_excludes_later_shortcuts():
+    from sim.graph_generators import _hops_at_time
+
+    # Chain 0 -> 1 -> 2 -> 3 (ids in creation order), then a later shortcut
+    # via node 4 (0 -> 4 -> 3). The past metric (watermark 4) must not see it.
+    graph = nx.DiGraph([(0, 1), (1, 2), (2, 3), (0, 4), (4, 3)])
+    assert _hops_at_time(graph, [0], watermark=4, targets=[3]) == 3
+    assert _hops_at_time(graph, [0], watermark=5, targets=[3]) == 2
+    # Unreachable target at a time before it existed
+    assert _hops_at_time(graph, [0], watermark=3, targets=[3]) is None
+
+
+def test_intertube_metrics_on_handbuilt_bridge():
+    from sim.graph_generators import intertube_metrics
+
+    # Tube A gen 0 = [0]; tube B gen 0 = [3]; bridge 0 -> 1 -> 2 -> 3.
+    graph = nx.DiGraph([(0, 1), (1, 2), (2, 3)])
+    gens_a = [[0]]
+    gens_b = [[3]]
+    distance, corridor = intertube_metrics(graph, gens_a, gens_b, 0, watermark=4, slack=0)
+    assert distance == 3
+    # Exact-geodesic corridor: all four nodes lie on the unique shortest path.
+    assert corridor == 4
+
+
+def test_two_motif_graph_records_increasing_id_watermarks():
+    graph, gens_a, gens_b, info = _small_two_motif_graph()
+    marks = info["id_watermarks"]
+    assert len(marks) == 30
+    assert np.all(np.diff(marks) > 0)
+    assert marks[-1] <= graph.number_of_nodes() + 10

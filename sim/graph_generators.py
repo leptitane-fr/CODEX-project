@@ -869,6 +869,7 @@ def generate_two_motif_graph(
         "first_living_gen": None,  # generation index of first direct body contact
         "first_wake_gen": None,    # generation index of first cross-wake capture
     }
+    id_watermarks = np.zeros(n_generations, dtype=np.int64)
     worldtube_time_a = t
     worldtube_time_b = t
     background_time = t
@@ -973,6 +974,14 @@ def generate_two_motif_graph(
             background_time = t2
             fire_background_event(t2, trigger)
 
+        # Observational only: snapshot of the id high-water mark at the end of
+        # this tick. Node ids are creation-ordered and every edge points
+        # old -> new, so the graph as it existed at the end of tick g is
+        # exactly the subgraph induced on ids < id_watermarks[g] -- which lets
+        # post-hoc metrology (recession, infall kinematics) reconstruct the
+        # metric at any past moment without touching the dynamics.
+        id_watermarks[g] = next_id
+
     info = {
         "realized_separation": realized_separation,
         "capture_counts_a": capture_counts_a,
@@ -984,8 +993,82 @@ def generate_two_motif_graph(
         "first_wake_gen": contacts["first_wake_gen"],
         "external_time_a": external_time_a,
         "external_time_b": external_time_b,
+        "id_watermarks": id_watermarks,
     }
     return graph, generations_a, generations_b, info
+
+
+def _hops_at_time(graph, sources, watermark, targets=None):
+    """Multi-source undirected BFS over the graph *as it existed* at `watermark`.
+
+    Node ids are creation-ordered and every edge points old -> new, so the
+    id-filtered subgraph (ids < watermark) is exactly the past state of the
+    universe -- including its past metric: a shortcut created later cannot
+    leak backward in time through this filter.
+
+    With `targets`: returns the smallest hop distance from any source to any
+    target (None if unreachable at that time). Without: returns the full
+    distance dict from the sources.
+    """
+    sources = [s for s in sources if s < watermark]
+    target_set = None if targets is None else {t for t in targets if t < watermark}
+    distances = {s: 0 for s in sources}
+    if target_set is not None and target_set & set(sources):
+        return 0
+    queue = deque(sources)
+    while queue:
+        u = queue.popleft()
+        for v in list(graph.predecessors(u)) + list(graph.successors(u)):
+            if v >= watermark or v in distances:
+                continue
+            distances[v] = distances[u] + 1
+            if target_set is not None and v in target_set:
+                return distances[v]
+            queue.append(v)
+    return None if target_set is not None else distances
+
+
+def intertube_metrics(graph, generations_a, generations_b, generation, watermark, slack=1):
+    """Instantaneous metric between the two living membranes, at a past moment.
+
+    Returns `(distance, corridor_volume)` where `distance` is the undirected
+    hop distance between the two motifs' generation-`generation` membranes in
+    the graph as of `watermark`, and `corridor_volume` counts the nodes lying
+    on near-geodesic paths between them (nodes u with
+    d_A(u) + d_B(u) <= distance + slack) -- the causal volume "between" the
+    bodies. `(None, None)` if the membranes are not mutually reachable at
+    that time. Purely observational: the recession/expansion monitor.
+    """
+    from_a = _hops_at_time(graph, generations_a[generation], watermark)
+    reachable_b = [b for b in generations_b[generation] if b in from_a]
+    if not reachable_b:
+        return None, None
+    distance = min(from_a[b] for b in reachable_b)
+    from_b = _hops_at_time(graph, generations_b[generation], watermark)
+    corridor = sum(
+        1 for node, da in from_a.items()
+        if node in from_b and da + from_b[node] <= distance + slack
+    )
+    return distance, corridor
+
+
+def wake_gap(graph, generations_from, generations_to, source_generation, target_generation, watermark):
+    """The race between signal and expansion, at a past moment.
+
+    Hop distance (in the graph as of `watermark`) from the target motif's
+    generation-`target_generation` membrane to the nearest node of the causal
+    wake of the source motif's generation `source_generation` (its
+    descendants existing at that time). Tracking this against
+    `target_generation - source_generation` shows directly whether the
+    radiated signal is closing on the receding body (gap shrinks) or being
+    outrun by the metric's growth (gap grows). None if no wake exists yet or
+    it is unreachable.
+    """
+    root = generations_from[source_generation][0]
+    wake = {w for w in nx.descendants(graph, root) if w < watermark}
+    if not wake:
+        return None
+    return _hops_at_time(graph, generations_to[target_generation], watermark, targets=wake)
 
 
 def first_contact_lag(graph, generations_from, generations_to, anchor, max_lag):
