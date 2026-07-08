@@ -651,3 +651,100 @@ questions of physics rather than knob-turning, neither implemented:
    derived from the delay law / ontology first and tested against the same
    halo criterion -- introduced as a free weighting function, it would be
    the TEI-3.x failure mode in a new costume.
+
+## The consumption law: the belt forms, the halo still does not
+
+The skimming exception was then removed (commit "Enforce the conservation
+law on capture"): capture now invalidates the prey's pending event and
+reschedules it after a charge-grown delay -- the exact treatment every
+background event already applies to its own parents (TEI 7.7: an instruction
+is conserved *until interpretation*; interpretation spends it). No new
+parameter. The A/B halo study was rerun identically, with three
+pre-registered monitors: belt charge (anchors = non-membrane parents of
+membrane nodes), capture rate early vs late (choking monitor), background
+condensation (screening monitor).
+
+### Raw results (k=3, 5 seeds, 1600 generations, anchors 100-1200, L=200)
+
+| W | routing | W_L: 100 | 300 | 600 | 1000 | 1200 | capture e/l | belt charge mean / max | max charge |
+|---|---|---|---|---|---|---|---|---|---|
+| 2 | blind      | 14.6 | 4.4 | 3.6 | 2.4 | 2.4 | 99% / 80% | 4.3 / 18 | 25 |
+| 2 | refractive | 2.0 | 2.4 | 2.0 | 2.0 | 2.0 | 99% / 98% | 8.7 / 467 | 811 |
+| 4 | blind      | 16.6 | 8.2 | 6.8 | 6.4 | 6.4 | 100% / 100% | 4.5 / 20 | 24 |
+| 4 | refractive | 5.4 | 6.0 | 4.6 | 5.4 | 5.4 | 99% / 99% | 9.0 / 470 | 611 |
+| 8 | blind      | 18.4 | 13.2 | 13.4 | 13.6 | 12.8 | 100% / 100% | 8.2 / 23 | 25 |
+| 8 | refractive | 12.2 | 12.8 | 10.8 | 13.0 | 12.8 | 99% / 98% | 41.2 / 459 | 795 |
+
+### Reading
+
+**The halo verdict is unchanged: zero-to-negative at every mass.** Late-age
+refractive minus blind: -0.4 (W=2), -1.0 (W=4), ~-0.2 (W=8). By the
+pre-registered criterion, the consumption law alone does not produce the
+gravitational halo.
+
+**But the radial mechanism it was built to create did appear.** Under
+refraction the belt is now heavily charged: anchor charge mean 9-41 (up to
+5x the blind belt) and belt maxima ~460-470, approaching hub class -- where
+blind belts stay at 4-8 mean, max ~20. The "causal accretion belt" (slow,
+charged vacuum around the membrane -- Canal 1 of TEI 7.7, local time
+dilation near mass) exists, mechanically sourced, exactly as designed. No
+choking either: capture holds at 98-100% to the end (mild 80% only for W=2
+blind). The realized failure mode is **screening** -- and a targeted
+verification pinned down its precise structure:
+
+- Under **blind** routing, 38% of belt anchors are *descendants of the
+  motif's own earlier generations* (recycled emissions), and the membrane
+  has ~2000 accidental emission edges (background events that happened to
+  pick membrane members as co-parents).
+- Under **refraction**, emission edges are comparable (~1700), but only
+  **1%** of belt anchors descend from the motif. The refractive walk climbs
+  charge gradients, and the motif's own emitted flux is young and light --
+  so refraction systematically diverts capture away from the motif's own
+  wake, toward heavy causal strangers.
+
+This matters because of what the Alexandrov interval actually counts: nodes
+that are both descendants of the earlier endpoint *and* ancestors of the
+later one -- i.e. **flux that was emitted by the motif and then re-absorbed
+by it**. The out-and-back loop. Blind routing closes that loop accidentally
+38% of the time; refraction almost never does. That is, mechanically, why
+refractive plateaus sit slightly *below* blind ones in both studies.
+
+### The two-channel reading (the theory predicted this failure shape)
+
+TEI 7.8 insists gravity needs two channels: Canal 1, retard de cadence
+(time dilation), and Canal 2, *espace secrete* -- the mass "expels flux
+continuously; that flux, as long as it is not executed, traces" geometry.
+A theory with only the time channel famously yields no (or half) spatial
+deflection -- the scalar trap. What we have now built is exactly Canal 1
+alone: consumption creates the slow, charged belt (time dilation:
+mechanically real, measured), but the motif is a **pure absorber**. Every
+edge points into the membrane; nothing structural points out. Its interval
+therefore contains nothing but its own tube plus whatever emission happens
+by accident -- and refraction suppresses precisely that accident. The width
+probe is correctly reporting that **no space is being secreted, because the
+motif never emits**.
+
+Implementation fact that makes this concrete: membrane nodes are the *only*
+nodes in the entire universe exempt from the event heap (background nodes
+are all scheduled at birth; membrane nodes never are). The exemption was
+inherited from the v0.6 worldline for control reasons. Meanwhile TEI 6bis.2
+says a mass is a subgraph in permanent restructuring that expels
+instructions *at every reorganization* -- our motif reorganizes every
+generation and expels nothing. The ontology demands radiation; the
+implementation forbids it.
+
+### Status and next step (not implemented)
+
+Consumption is kept: it is a conservation law, it works (the belt is real),
+and it is one of the two channels. The honest next step is the other
+channel, and it is once again the removal of a special exemption rather
+than a new force: **retired generations re-enter the flux** (membrane
+members are scheduled on the event heap when their generation rotates out
+-- the motif's wake radiates, per 6bis.2). Expected mechanism: the wake is
+dense, near the membrane, and *descends from it*; with consumption charging
+whatever gets captured, the motif's own re-absorbable emissions finally
+become the heaviest things in its neighbourhood, letting the refractive
+walk close the emit-capture loop that the interval width measures. Success
+criterion unchanged (halo A/B). Failure modes to name at design time; the
+obvious one is runaway self-interaction (the motif capturing only its own
+wake and decoupling from the universe -- a solipsist bubble).

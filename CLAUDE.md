@@ -167,6 +167,25 @@ not "fix" this with a free weighting function on the walk; any change to
 what the walk senses must be derived from the delay law/ontology first, and
 judged by the same halo criterion.
 
+The conservation-law fix was then applied (capture *consumes* its prey:
+pending event invalidated, rescheduled with charge-grown delay — TEI 7.7's
+"conserved until interpretation", the same treatment background events
+already give their parents; removal of a special case, no new knob). Result
+(same file): the charged slow accretion belt forms exactly as designed
+(anchor charge ~9-41 mean, ~470 max under refraction vs ~5/20 blind — Canal
+1, time dilation near mass, mechanically real), capture holds 98-100%
+(no choking), **but the halo is still zero-to-negative**. Verified root
+cause: the interval width counts emitted-then-reabsorbed flux, and the
+motif is a pure absorber — membrane nodes are the only nodes in the
+universe exempt from the event heap, so the motif never radiates (violating
+TEI 6bis.2, which demands a mass expel instructions at every internal
+reorganization); blind routing closed the emit/reabsorb loop by accident
+38% of the time, refraction diverts it to heavy strangers (1%). The
+recorded next step (not yet implemented): structural radiation — retired
+generations re-enter the event heap — judged by the same halo criterion,
+with runaway self-interaction (a solipsist bubble capturing only its own
+wake) named in advance as the failure mode to watch.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

@@ -81,8 +81,9 @@ growth-exponent measurement, so the regimes can be compared directly:
   background hubs (max charge jumps 26 → ~1100) and the perpetually-newborn
   worldline, which abandons its charge at every self-continuation step, starves
   even faster (width → 1 immediately). See
-  `math/event_driven_shadow_analysis.md` for the full study and the
-  identity/charge-mismatch diagnosis.
+  `math/event_driven_shadow_analysis.md` for the full study, the
+  identity/charge-mismatch diagnosis, and the follow-up studies on the
+  closed-motif Observer (below).
 - `generate_braided_motif_graph` — the v0.7 answer to that diagnosis: the
   Observer as a *closed motif* (matter, TEI 6ter.3-D) — a worldtube of
   W-node antichain generations braided by 2 internal parents per node, with a
@@ -93,8 +94,17 @@ growth-exponent measurement, so the regimes can be compared directly:
   nontrivial transverse width (~1.6·W) indefinitely under both routings, the
   first persistent structure in this project — but the refractive **halo is
   zero-to-negative at every mass tested** (W ∈ {2,4,8}), so matter persists
-  yet still does not gravitationally retain space around its body. Same file
-  for the study and the residency-caps-charge diagnosis.
+  yet still does not gravitationally retain space around its body. A
+  conservation-law fix followed (capture now *consumes* its prey — pending
+  event invalidated and rescheduled with charge-grown delay, per TEI 7.7's
+  "conserved until interpretation"): the charged slow **accretion belt** then
+  forms exactly as designed (anchor charge up to ~470 under refraction, i.e.
+  Canal 1, local time dilation near mass) — but the halo verdict is still
+  negative, and a targeted verification shows why: the motif is a **pure
+  absorber** (membrane nodes are the only nodes exempt from the event heap),
+  and the interval width measures emitted-then-reabsorbed flux — Canal 2,
+  "espace sécrété", which requires radiation the motif does not yet have.
+  Same file for all three studies and diagnoses.
 
 ## Reproducibility
 
