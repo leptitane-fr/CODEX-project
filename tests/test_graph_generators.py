@@ -365,3 +365,39 @@ def test_braided_motif_k2_is_sealed_no_metabolism():
 def test_braided_motif_external_time_is_monotonic():
     _, _, external_time, _ = _small_motif_graph()
     assert np.all(np.diff(external_time) > 0)
+
+
+def test_braided_motif_radiates_its_retired_generations():
+    # Radiation (TEI 6bis.2): retired membrane members re-enter the event
+    # heap and fire background events of their own, so the membrane must have
+    # out-edges to non-membrane children (structural emission, not the
+    # accidental kind that background walks used to provide).
+    graph, generations, _, _ = _small_motif_graph(k=3, motif_width=4)
+    membrane = set()
+    for generation in generations:
+        membrane.update(generation)
+    emission_edges = sum(
+        1 for m in membrane for child in graph.successors(m) if child not in membrane
+    )
+    assert emission_edges > 0
+
+
+def test_braided_motif_radiation_preserves_shadow_rule_and_antichains():
+    # The wake firing back into the neighbourhood must not corrupt the causal
+    # invariants: parents of every node stay mutually independent, and each
+    # generation stays an antichain.
+    graph, generations, _, _ = _small_motif_graph(k=3, motif_width=4, seed=11)
+    assert nx.is_directed_acyclic_graph(graph)
+    for node in graph.nodes:
+        parents = list(graph.predecessors(node))
+        for i in range(len(parents)):
+            for j in range(i + 1, len(parents)):
+                a, b = parents[i], parents[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+    for generation in generations:
+        for i in range(len(generation)):
+            for j in range(i + 1, len(generation)):
+                a, b = generation[i], generation[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)

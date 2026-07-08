@@ -463,10 +463,16 @@ def generate_braided_motif_graph(
 
     Entropy is the generational rotation itself: once generation g+1 exists,
     the motif never re-executes over generation g again. Old members are not
-    deleted (the DAG is append-only) -- they simply return to being ordinary
-    background, their pending queue events still fire. The motif's identity is
-    the unbroken succession of generations; nothing stores it (present encodes
-    present+1, per the no-memory rule).
+    deleted (the DAG is append-only) -- they are *radiated*: on retirement
+    they are scheduled onto the event heap (generation bump + reschedule
+    after a charge-grown delay, the same operation as capture consumption),
+    so the motif's wake re-enters the flux and fires background events of its
+    own. This implements TEI 6bis.2 (a mass in permanent restructuring expels
+    instructions at every internal reorganization): the motif's entropy and
+    its emission are one and the same event, and no node in the universe is
+    exempt from the heap. The motif's identity is the unbroken succession of
+    generations; nothing stores it (present encodes present+1, per the
+    no-memory rule).
 
     Structural consequence, stated before any measurement: `k = 2` cannot
     make matter under this rule -- braiding consumes both parent slots
@@ -649,6 +655,23 @@ def generate_braided_motif_graph(
         capture_counts[g] = captures
         worldtube_time += delay(float(np.mean(parent_charges)))
         external_time[g] = worldtube_time
+
+        # Radiation (TEI 6bis.2: a mass in permanent restructuring expels
+        # instructions at every internal reorganization). The generation just
+        # retired by the rotation re-enters the flux: entropy and emission are
+        # the same event. Retirement applies the same operation as capture
+        # consumption -- generation bump (which invalidates any stale pending
+        # entry, e.g. generation zero's original background birth event, so a
+        # single instruction never fires twice) and rescheduling after a
+        # charge-grown delay. This removes the last special exemption in the
+        # universe: membrane nodes were the only nodes never scheduled on the
+        # event heap.
+        for retired in previous:
+            current_gen[retired] += 1
+            heapq.heappush(
+                heap,
+                (background_time + delay(charge[retired]), retired, current_gen[retired]),
+            )
 
         for _ in range(background_ratio):
             if not heap or next_id >= max_nodes:
