@@ -862,7 +862,13 @@ def generate_two_motif_graph(
     external_time_b = np.zeros(n_generations)
     capture_counts_a = np.zeros(n_generations, dtype=int)
     capture_counts_b = np.zeros(n_generations, dtype=int)
-    contacts = {"living": 0, "wake_by_a": 0, "wake_by_b": 0}
+    contacts = {
+        "living": 0,
+        "wake_by_a": 0,
+        "wake_by_b": 0,
+        "first_living_gen": None,  # generation index of first direct body contact
+        "first_wake_gen": None,    # generation index of first cross-wake capture
+    }
     worldtube_time_a = t
     worldtube_time_b = t
     background_time = t
@@ -900,8 +906,12 @@ def generate_two_motif_graph(
                     captured_nodes.append(candidate)
                     if candidate in living_other:
                         contacts["living"] += 1
+                        if contacts["first_living_gen"] is None:
+                            contacts["first_living_gen"] = gen_index
                     elif candidate in membrane_other:
                         contacts[wake_key] += 1
+                        if contacts["first_wake_gen"] is None:
+                            contacts["first_wake_gen"] = gen_index
             captures += len(captured_nodes)
 
             new_node = next_id
@@ -970,6 +980,8 @@ def generate_two_motif_graph(
         "contact_living": contacts["living"],
         "contact_wake_by_a": contacts["wake_by_a"],  # A captured B's radiated wake: matter flowing B -> A
         "contact_wake_by_b": contacts["wake_by_b"],  # B captured A's radiated wake: matter flowing A -> B
+        "first_living_gen": contacts["first_living_gen"],
+        "first_wake_gen": contacts["first_wake_gen"],
         "external_time_a": external_time_a,
         "external_time_b": external_time_b,
     }
