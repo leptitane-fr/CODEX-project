@@ -5,10 +5,12 @@ import pytest
 from sim.graph_generators import (
     causal_future_mask,
     causal_interval,
+    first_contact_lag,
     fit_growth_exponent,
     generate_braided_motif_graph,
     generate_event_driven_shadow_graph,
     generate_random_dag,
+    generate_two_motif_graph,
     generate_tei_shadow_graph,
     interval_width,
     longest_path_depths,
@@ -401,3 +403,62 @@ def test_braided_motif_radiation_preserves_shadow_rule_and_antichains():
                 a, b = generation[i], generation[j]
                 assert not nx.has_path(graph, a, b)
                 assert not nx.has_path(graph, b, a)
+
+
+def _small_two_motif_graph(seed=7, birth_separation=3, routing=False):
+    return generate_two_motif_graph(
+        n_generations=30, k=3, motif_width=3, birth_separation=birth_separation,
+        warmup_events=400, walk_hops=5, background_ratio=10,
+        charge_biased_routing=routing, seed=seed,
+    )
+
+
+def test_two_motif_graph_advances_both_bodies_with_invariants():
+    graph, gens_a, gens_b, info = _small_two_motif_graph()
+    assert len(gens_a) == 31 and len(gens_b) == 31
+    assert nx.is_directed_acyclic_graph(graph)
+    for generations in (gens_a, gens_b):
+        for generation in generations:
+            assert len(generation) == 3
+            for i in range(3):
+                for j in range(i + 1, 3):
+                    a, b = generation[i], generation[j]
+                    assert not nx.has_path(graph, a, b)
+                    assert not nx.has_path(graph, b, a)
+    for node in graph.nodes:
+        parents = list(graph.predecessors(node))
+        for i in range(len(parents)):
+            for j in range(i + 1, len(parents)):
+                a, b = parents[i], parents[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+
+
+def test_two_motif_graph_respects_birth_separation():
+    graph, gens_a, gens_b, info = _small_two_motif_graph(birth_separation=3)
+    assert info["realized_separation"] >= 3
+    assert info["contact_living"] >= 0
+    assert info["contact_wake_by_a"] >= 0 and info["contact_wake_by_b"] >= 0
+    # metabolism works for both bodies (k=3 => 1 capture slot per node)
+    assert info["capture_counts_a"].sum() > 0
+    assert info["capture_counts_b"].sum() > 0
+
+
+def test_two_motif_graph_raises_when_separation_unavailable():
+    with pytest.raises(RuntimeError):
+        generate_two_motif_graph(
+            n_generations=5, k=3, motif_width=3, birth_separation=1000,
+            warmup_events=400, walk_hops=5, background_ratio=10, seed=7,
+        )
+
+
+def test_first_contact_lag_on_handbuilt_graph():
+    # Tube A: generations [[0], [1], [2]]; tube B: [[10], [11], [12]].
+    # A bridge 1 -> 11 makes B's generation index 1 the first contact from
+    # A's anchor 0 (descendants of 0 include 1 -> 11).
+    graph = nx.DiGraph([(0, 1), (1, 2), (10, 11), (11, 12), (1, 11)])
+    gens_a = [[0], [1], [2]]
+    gens_b = [[10], [11], [12]]
+    assert first_contact_lag(graph, gens_a, gens_b, anchor=0, max_lag=2) == 1
+    # From B toward A there is no path at all: disconnected within horizon.
+    assert first_contact_lag(graph, gens_b, gens_a, anchor=0, max_lag=2) is None

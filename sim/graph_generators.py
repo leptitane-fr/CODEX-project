@@ -56,6 +56,18 @@ gives two concrete generators to compare against each other:
   see math/event_driven_shadow_analysis.md for that verdict and for the
   pre-registered halo criterion this generator is judged by.
 
+- `generate_two_motif_graph`: the two-body ("Earth-Mars", TEI 6bis.4) probe.
+  Two independent closed motifs, born as localized clusters of fresh nodes at
+  a controlled relational separation (undirected graph distance -- the only
+  distance a non-embedded universe has), advancing concurrently in the same
+  flux. Built after the single-body self-halo failed its criterion three
+  times for three different verified reasons; the probe question changes
+  from "does a body dress itself in space" to "does the crossing of two
+  bodies' radiations sustain an inter-body causal channel" -- measured via
+  `first_contact_lag` (causal distance in proper-time units, the theory's
+  own distance-regularity question) and `interval_width` between the two
+  worldtubes (the transverse thickness of the A->B channel).
+
 Neither `generate_random_dag` nor `sprinkle_minkowski` explains why an exponent
 of 3 (rather than 2 or 4) should emerge from purely local, non-embedded
 coupling rules -- that is the actual open question (TEI 7.5). This module is
@@ -65,6 +77,7 @@ instrumentation for exploring it, not a claimed solution to it.
 import argparse
 import bisect
 import heapq
+from collections import deque
 
 import networkx as nx
 import numpy as np
@@ -683,6 +696,303 @@ def generate_braided_motif_graph(
             fire_background_event(t2, trigger)
 
     return graph, generations, external_time, capture_counts
+
+
+def _undirected_distances(graph, source):
+    """BFS hop distances from `source` over the graph viewed as undirected.
+
+    The only notion of "how far apart" two nodes are in a non-embedded
+    relational universe: count relays, ignoring edge direction.
+    """
+    distances = {source: 0}
+    queue = deque([source])
+    while queue:
+        u = queue.popleft()
+        for v in list(graph.predecessors(u)) + list(graph.successors(u)):
+            if v not in distances:
+                distances[v] = distances[u] + 1
+                queue.append(v)
+    return distances
+
+
+def generate_two_motif_graph(
+    n_generations,
+    k,
+    motif_width,
+    birth_separation=4,
+    warmup_events=3000,
+    walk_hops=8,
+    background_ratio=50,
+    internal_parents=2,
+    charge_biased_routing=False,
+    seed=None,
+    max_nodes=2_000_000,
+):
+    """Two-body probe: two independent closed motifs in the same flux (TEI 6bis.4).
+
+    Identical physics to `generate_braided_motif_graph` (braiding, metabolism
+    with consumption, radiation on retirement, optional refractive routing) --
+    but with *two* motifs, A and B, so the observable can change from a
+    single body's self-halo (which failed its pre-registered criterion three
+    times, see math/event_driven_shadow_analysis.md) to the causal channel
+    *between* bodies: TEI 6bis.4's own "how is a stable Earth-Mars relation
+    maintained across perishable flux" question.
+
+    Birth: each motif's generation zero is a *localized cluster* -- a fresh
+    (charge-0) node plus its `motif_width - 1` nearest fresh nodes by
+    undirected hop distance. Localization at birth is an initialization
+    requirement, not a new dynamic law: two motifs seeded from scattered
+    nodes would interpenetrate from the start and there would be no
+    "between" to measure. Cluster B's seed is the closest fresh node at
+    undirected distance >= `birth_separation` from cluster A's seed; the
+    realized separation is returned (the warmup universe is small-world --
+    diameter ~6 at 3000 warmup events -- so only modest separations exist,
+    and requesting an unavailable one raises).
+
+    Per tick of shared proper time, A advances one generation, then B, then
+    `background_ratio` background events fire (fixed order, a deliberate
+    small asymmetry, documented rather than hidden). Nothing excludes one
+    motif's walk from the other's nodes -- the dynamics stay purely local
+    with no new rule -- but cross-couplings are *counted*:
+    `contact_living` (a capture landing on the other motif's living
+    membrane: direct body contact) and `contact_wake_by_a` /
+    `contact_wake_by_b` (a capture landing on the other motif's
+    retired/radiated members -- the desired channel coupling, split by
+    direction: A eating B's wake is matter flowing B -> A, and vice versa).
+
+    Returns `(graph, generations_a, generations_b, info)` where `info` is a
+    dict with `realized_separation`, `capture_counts_a/b` (per generation),
+    `contact_living`, `contact_wake_by_a/b`, and `external_time_a/b`.
+    """
+    if internal_parents < 2:
+        raise ValueError("braiding requires internal_parents >= 2")
+    if k < internal_parents:
+        raise ValueError("k must be >= internal_parents")
+    if motif_width < 2:
+        raise ValueError("motif_width must be >= 2")
+
+    rng = np.random.default_rng(seed)
+    graph = nx.DiGraph()
+
+    n0 = k
+    graph.add_nodes_from(range(n0))
+
+    charge = [0] * n0
+    current_gen = [0] * n0
+    ancestors = [0] * n0
+    max_attempts = max(50, k * 20)
+
+    def delay(load):
+        return 1.0 + load
+
+    def new_slot():
+        charge.append(0)
+        current_gen.append(0)
+        ancestors.append(0)
+
+    heap = []
+    next_id = n0
+    for node in range(n0):
+        heapq.heappush(heap, (1.0, node, 0))
+
+    routing_charge = charge if charge_biased_routing else None
+
+    def fire_background_event(t, trigger):
+        nonlocal next_id
+        chosen = _pick_independent_parents(
+            graph, trigger, k, rng, walk_hops, ancestors, max_attempts, charge=routing_charge
+        )
+        new_node = next_id
+        next_id += 1
+        graph.add_node(new_node)
+        new_slot()
+        new_ancestors = 0
+        for p in chosen:
+            graph.add_edge(p, new_node)
+            new_ancestors |= ancestors[p] | (1 << p)
+            charge[p] += 1
+            current_gen[p] += 1
+            heapq.heappush(heap, (t + delay(charge[p]), p, current_gen[p]))
+        ancestors[new_node] = new_ancestors
+        heapq.heappush(heap, (t + delay(0), new_node, current_gen[new_node]))
+
+    # --- Phase 1: warmup ---
+    t = 0.0
+    for _ in range(warmup_events):
+        if next_id >= max_nodes:
+            raise RuntimeError(f"max_nodes ({max_nodes}) reached during warmup")
+        t, trigger, gen = heapq.heappop(heap)
+        if gen != current_gen[trigger]:
+            continue
+        fire_background_event(t, trigger)
+
+    # --- Phase 2: seed two localized clusters at controlled separation ---
+    fresh = [node for node in range(next_id) if charge[node] == 0]
+    if len(fresh) < 2 * motif_width:
+        raise RuntimeError("not enough fresh nodes after warmup to seed two motifs")
+    seed_a = int(rng.choice(fresh))
+    dist_from_a = _undirected_distances(graph, seed_a)
+    reachable_fresh = [f for f in fresh if f != seed_a and f in dist_from_a]
+    by_distance_from_a = sorted(reachable_fresh, key=lambda f: dist_from_a[f])
+    cluster_a = [seed_a] + by_distance_from_a[: motif_width - 1]
+
+    far_candidates = [
+        f for f in by_distance_from_a
+        if dist_from_a[f] >= birth_separation and f not in cluster_a
+    ]
+    if not far_candidates:
+        raise RuntimeError(
+            f"no fresh node at undirected distance >= {birth_separation} from cluster A "
+            f"(max available: {max(dist_from_a[f] for f in reachable_fresh)})"
+        )
+    seed_b = far_candidates[0]  # the closest one satisfying the separation
+    dist_from_b = _undirected_distances(graph, seed_b)
+    candidates_b = sorted(
+        (f for f in fresh if f not in cluster_a and f != seed_b and f in dist_from_b),
+        key=lambda f: dist_from_b[f],
+    )
+    cluster_b = [seed_b] + candidates_b[: motif_width - 1]
+    realized_separation = dist_from_a[seed_b]
+
+    generations_a = [cluster_a]
+    generations_b = [cluster_b]
+    membrane_a = set(cluster_a)
+    membrane_b = set(cluster_b)
+    external_time_a = np.zeros(n_generations)
+    external_time_b = np.zeros(n_generations)
+    capture_counts_a = np.zeros(n_generations, dtype=int)
+    capture_counts_b = np.zeros(n_generations, dtype=int)
+    contacts = {"living": 0, "wake_by_a": 0, "wake_by_b": 0}
+    worldtube_time_a = t
+    worldtube_time_b = t
+    background_time = t
+
+    def advance_motif(generations, membrane_self, membrane_other, living_other, wake_key, gen_index):
+        """One generation step for one motif; returns (captures, mean parent charge)."""
+        nonlocal next_id
+        previous = generations[-1]
+        previous_set = set(previous)
+        new_generation = []
+        new_generation_set = set()
+        parent_charges = []
+        captures = 0
+        for _ in range(motif_width):
+            if next_id >= max_nodes:
+                raise RuntimeError(f"max_nodes ({max_nodes}) reached at generation {gen_index}")
+            picks = rng.choice(len(previous), size=internal_parents, replace=False)
+            chosen = [previous[i] for i in picks]
+            captured_nodes = []
+            attempts = 0
+            while len(captured_nodes) < k - internal_parents and attempts < max_attempts:
+                candidate = _local_walk_candidate(
+                    graph, chosen[0], rng, walk_hops, charge=routing_charge
+                )
+                attempts += 1
+                if candidate in chosen or candidate in previous_set or candidate in new_generation_set:
+                    continue
+                candidate_ancestors = ancestors[candidate]
+                independent = all(
+                    not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
+                    for p in chosen
+                )
+                if independent:
+                    chosen.append(candidate)
+                    captured_nodes.append(candidate)
+                    if candidate in living_other:
+                        contacts["living"] += 1
+                    elif candidate in membrane_other:
+                        contacts[wake_key] += 1
+            captures += len(captured_nodes)
+
+            new_node = next_id
+            next_id += 1
+            graph.add_node(new_node)
+            new_slot()
+            new_ancestors = 0
+            for p in chosen:
+                graph.add_edge(p, new_node)
+                new_ancestors |= ancestors[p] | (1 << p)
+                charge[p] += 1
+            ancestors[new_node] = new_ancestors
+            new_generation.append(new_node)
+            new_generation_set.add(new_node)
+            parent_charges.extend(charge[p] for p in chosen)
+
+            for captured in captured_nodes:
+                current_gen[captured] += 1
+                heapq.heappush(
+                    heap,
+                    (background_time + delay(charge[captured]), captured, current_gen[captured]),
+                )
+
+        generations.append(new_generation)
+        membrane_self.update(new_generation)
+
+        # Radiation: the retired generation re-enters the flux (TEI 6bis.2).
+        for retired in previous:
+            current_gen[retired] += 1
+            heapq.heappush(
+                heap,
+                (background_time + delay(charge[retired]), retired, current_gen[retired]),
+            )
+        return captures, float(np.mean(parent_charges))
+
+    for g in range(n_generations):
+        living_b = set(generations_b[-1])
+        captures_a, mean_charge_a = advance_motif(
+            generations_a, membrane_a, membrane_b, living_b, "wake_by_a", g
+        )
+        capture_counts_a[g] = captures_a
+        worldtube_time_a += delay(mean_charge_a)
+        external_time_a[g] = worldtube_time_a
+
+        living_a = set(generations_a[-1])
+        captures_b, mean_charge_b = advance_motif(
+            generations_b, membrane_b, membrane_a, living_a, "wake_by_b", g
+        )
+        capture_counts_b[g] = captures_b
+        worldtube_time_b += delay(mean_charge_b)
+        external_time_b[g] = worldtube_time_b
+
+        for _ in range(background_ratio):
+            if not heap or next_id >= max_nodes:
+                break
+            t2, trigger, gen = heapq.heappop(heap)
+            if gen != current_gen[trigger]:
+                continue
+            background_time = t2
+            fire_background_event(t2, trigger)
+
+    info = {
+        "realized_separation": realized_separation,
+        "capture_counts_a": capture_counts_a,
+        "capture_counts_b": capture_counts_b,
+        "contact_living": contacts["living"],
+        "contact_wake_by_a": contacts["wake_by_a"],  # A captured B's radiated wake: matter flowing B -> A
+        "contact_wake_by_b": contacts["wake_by_b"],  # B captured A's radiated wake: matter flowing A -> B
+        "external_time_a": external_time_a,
+        "external_time_b": external_time_b,
+    }
+    return graph, generations_a, generations_b, info
+
+
+def first_contact_lag(graph, generations_from, generations_to, anchor, max_lag):
+    """Causal distance between two worldtubes, in proper-time units.
+
+    Smallest L <= max_lag such that some member of `generations_to[anchor + L]`
+    is a causal descendant of `generations_from[anchor][0]` -- i.e. how many of
+    the target's own generations elapse before the source's instructions can
+    first reach it. Returns None if no contact within `max_lag` (causally
+    disconnected at this horizon). This is the toy model's reading of TEI
+    6bis.4's distance-regularity question: a *stable* lag(anchor) profile is a
+    stable Earth-Mars distance.
+    """
+    reachable = nx.descendants(graph, generations_from[anchor][0])
+    horizon = min(anchor + max_lag, len(generations_to) - 1)
+    for lag in range(0, horizon - anchor + 1):
+        if any(member in reachable for member in generations_to[anchor + lag]):
+            return lag
+    return None
 
 
 def observer_growth_curve(graph, worldline):
