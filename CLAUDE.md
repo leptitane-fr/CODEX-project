@@ -203,6 +203,23 @@ between them** (TEI 6bis.4's own Earth-Mars support question). Do not add
 routing-law patches (wake boosts, hub caps, age weighting) to force the
 third A/B green — that is the TEI-3.x failure mode.
 
+The two-body probe (`generate_two_motif_graph`, `first_contact_lag`) has now
+been built and run (same file, last section). Scale calibration first: the
+interaction range (`walk_hops`) shapes the universe's own geometry — hops≥8
+gives a one-room universe (bodies merge at birth), hops=2 an extended one
+(diameter ~28) but chokes the metabolism (capture ~0%), hops=3 is the
+narrow window (capture 63-82%, separations up to ~8). Study verdict:
+**the first reproducible positive refractive differential of the project**
+— separated bodies couple in 5/10 refractive runs vs 0/10 blind, with a
+timed infall dynamic (wake coupling at generation ~11-29, body contact only
+45-110 generations later, then fusion) — but the pre-registered stationary
+inter-body channel does **not** form: outcomes are bimodal (total silence
+or merger), sustained coupling reaches only the partner's fossil past
+(lag stays infinite), and "space between bodies" still does not exist in
+the model. Do not force the channel by knob search; the recorded obstacles
+are the universe's small diameter at metabolism-compatible range and the
+absence of anything that stabilizes approach short of merger.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

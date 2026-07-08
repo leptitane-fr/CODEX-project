@@ -104,7 +104,20 @@ growth-exponent measurement, so the regimes can be compared directly:
   absorber** (membrane nodes are the only nodes exempt from the event heap),
   and the interval width measures emitted-then-reabsorbed flux — Canal 2,
   "espace sécrété", which requires radiation the motif does not yet have.
-  Same file for all three studies and diagnoses.
+  Structural radiation was then added (retired generations re-enter the event
+  heap; entropy = emission, per TEI 6bis.2) — the wake is real, but the halo
+  verdict stayed negative (an incumbent-hub charge monopoly, plus a suspected
+  throughput bound on any single body's self-halo). Same file for all
+  studies and diagnoses.
+- `generate_two_motif_graph` + `first_contact_lag` — the two-body
+  ("Earth-Mars", TEI 6bis.4) probe: two closed motifs born as localized
+  clusters at a controlled relational separation, cross-couplings counted by
+  direction and timed. Result: **the first reproducible positive refractive
+  differential of the project** — separated bodies find each other in 5/10
+  refractive runs vs 0/10 blind, with timed infall (wake coupling, then body
+  contact ~45-110 generations later, then merger) — but no stationary
+  inter-body channel forms (outcomes are bimodal: silence or fusion), so
+  "space between bodies" still does not exist in the model.
 
 ## Reproducibility
 

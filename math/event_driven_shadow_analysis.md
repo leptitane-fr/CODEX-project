@@ -829,3 +829,108 @@ member of motif B]) behave differently from the self-halo that has now
 failed three times? That is a change of observable (like the cone -> width
 move, which paid off), not a new mechanism, and it is the question the
 theory itself asks.
+
+## The two-body probe: attraction exists between bodies; still no channel
+
+The pivot recorded above was implemented (`generate_two_motif_graph`,
+`first_contact_lag`): two closed motifs born as localized clusters at a
+controlled undirected-hop separation, advancing concurrently, all previous
+laws active (braiding, consumption, radiation), cross-couplings counted by
+direction and timed (`first_living_gen`, `first_wake_gen`).
+
+### Scale calibration (before fixing criteria)
+
+The physical requirement was stated in advance: separation must exceed the
+interaction range (`walk_hops`), else there are no "two bodies". Measured:
+
+- `walk_hops >= 8`: the warmup universe is one causal room (leaf-to-leaf
+  diameter ~6 < range) -- the two motifs merge from birth (contact_living
+  ~1300). No two-body regime exists.
+- `walk_hops = 2`: the universe becomes *extended* (diameter ~28) -- the
+  interaction range shapes the universe's own geometry -- but the metabolism
+  chokes (capture ~0%: everything within 2 hops of a membrane is the motif
+  itself or its ancestors, all antichain-rejected; the capturable wake lives
+  at ~3 hops).
+- `walk_hops = 3`: the window. Metabolism healthy (capture 63-82%), genuine
+  separation available (D up to ~8 at warmup=20000), zero body contact at
+  birth for D=6.
+
+A structural tension worth recording on its own: **the range that permits
+geometry starves matter, and the range that feeds matter dissolves
+geometry** -- except in a narrow window (here, exactly hops=3).
+
+Also discovered: a seed's *refractive* warmup universe can have a smaller
+diameter than its blind counterpart (refraction makes the small world
+smaller), so equal nominal separations are not always available in both
+arms; the study steps down per seed and reports realized separations.
+
+### Raw results (k=3, W=4, warmup=20000, hops=3, 1200 generations, 5 seeds)
+
+Per seed: total cross-wake captures by direction (@ = generation of first),
+living-membrane contacts (@ = first), lag A->B at anchors 100/800, channel
+width I[A_a, B_{a+300}] at anchors {100,400,800}:
+
+D=6, blind: **all five seeds totally silent** (no coupling, no contact, no
+channel, lag = None everywhere).
+
+D=6, refractive: seeds 2,3,5 silent; seed 1: wakeB=9@5 (small sustained
+one-way coupling, no contact, no channel); seed 4: wake@29 -> living@95 ->
+full merger (3085+3484 wake captures, 1427 living, channel ~10 post-merger).
+
+D=7, blind: seeds 1,2,5 silent; seeds 3,4: **born touching** (living@1,
+wake@0-1) -> immediate merger (~2770 wake each way, ~2950 living,
+channel ~10).
+
+D=7, refractive: seed 2 (fallback sep=6) silent; seed 1: wakeB=106@50,
+sustained 1150 generations, never touching (living=0), no channel; seed 5:
+wakeB=4@27, no contact; seeds 3,4: wake@11-15 -> living@60-124 -> merger
+(~3200+3100 wake, ~1450 living, channel ~10).
+
+### Reading
+
+**First reproducible positive refractive differential of the project.**
+Across all runs where the bodies were not born touching: cross-body coupling
+occurred in **5 of 10 refractive runs and 0 of 10 blind runs**. Under blind
+routing, two separated bodies ignore each other forever (1200 generations of
+mutual silence, every seed). Under refraction -- and only under refraction --
+they find each other. Whatever its limits below, this is the first time in
+five studies that the gravity law produced *more* structure than blind
+chance, and it did so on the observable the theory itself designates (the
+relation between two masses), not on the self-halo where it failed three
+times.
+
+**The timing resolves an infall dynamic.** Blind mergers exist only when the
+election placed the bodies in contact at birth (living@1). Refractive
+mergers are *processes*: wake coupling first (generation ~11-29), living
+contact only 45-110 generations later, then fusion. Two masses that sense
+each other's wake, approach, and collide. The model has infall; it has no
+orbits (nothing supplies angular momentum) and no static hovering -- so
+contact, once made, always completes into merger.
+
+**The pre-registered channel criterion is NOT met.** No run shows a
+stationary inter-body channel at a distance: channel width is nonzero only
+after merger (where ~10 is just the fused pair's own tube width, not space
+between bodies). The outcome is bimodal -- total silence or eventual fusion.
+Notably, in the sustained-coupling-without-contact runs (D=7 seed 1: 106
+captures over 1150 generations) the lag A->B stayed infinite at anchors 100+
+even though B demonstrably captured A's wake: the coupling reaches only the
+partner's *fossil past* (generations before the anchors), never its present
+-- an asymmetric, backward-looking touch that never becomes a forward
+channel. (Hypothesis, not verified: as the universe grows, the two tubes'
+active regions recede from each other, so only old strata remain mutually
+reachable -- an expansion-like recession. Instrumenting *which* generations
+get captured would test this.)
+
+**Verdict.** The two-body probe delivered the first genuine gravitational
+signature of the framework (refraction-only mutual discovery, timed infall,
+merger) and simultaneously showed that at the accessible universe scale
+(separations ~2x the interaction range, diameter ~8) there is no stable
+"space between bodies" to measure -- the regime menu is silence, infall, or
+fusion. The Earth-Mars question (a *stationary* inter-body relation) remains
+open, now with a sharper obstacle: it needs either a universe with genuine
+extent (which the current growth rule only produces at metabolism-choking
+interaction range 2) or a mechanism that stabilizes approach short of merger
+-- and per the project's discipline, neither should be forced by knob
+search. What exists now, honestly stated: matter that persists, dilates
+time, radiates, attracts other matter under the refraction law, falls
+together, and merges. What does not exist: space.
