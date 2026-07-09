@@ -495,3 +495,58 @@ def test_two_motif_graph_records_increasing_id_watermarks():
     assert len(marks) == 30
     assert np.all(np.diff(marks) > 0)
     assert marks[-1] <= graph.number_of_nodes() + 10
+
+
+def test_two_motif_kick_none_is_identical_to_no_kick():
+    # kick_mode='none' (default) must reproduce the untouched generator bit for
+    # bit -- the T_kick=0 control.
+    base = generate_two_motif_graph(
+        n_generations=30, k=3, motif_width=3, birth_separation=3,
+        warmup_events=400, walk_hops=5, background_ratio=10, seed=7)
+    kicked_none = generate_two_motif_graph(
+        n_generations=30, k=3, motif_width=3, birth_separation=3,
+        warmup_events=400, walk_hops=5, background_ratio=10,
+        kick_ticks=20, kick_mode="none", seed=7)
+    assert set(base[0].edges()) == set(kicked_none[0].edges())
+    assert base[1] == kicked_none[1] and base[2] == kicked_none[2]
+
+
+def test_two_motif_kick_rejects_bad_mode():
+    with pytest.raises(ValueError):
+        generate_two_motif_graph(
+            n_generations=5, k=3, motif_width=3, birth_separation=3,
+            warmup_events=400, walk_hops=5, background_ratio=10,
+            kick_ticks=5, kick_mode="sideways", seed=7)
+
+
+@pytest.mark.parametrize("mode", ["noinfall", "iso"])
+def test_two_motif_kick_preserves_invariants_and_diverges(mode):
+    graph, ga, gb, info = generate_two_motif_graph(
+        n_generations=40, k=3, motif_width=3, birth_separation=3,
+        warmup_events=500, walk_hops=5, background_ratio=10,
+        kick_ticks=15, kick_mode=mode, seed=7)
+    # Physics still intact: DAG, antichain generations.
+    assert nx.is_directed_acyclic_graph(graph)
+    for generations in (ga, gb):
+        for generation in generations:
+            for i in range(len(generation)):
+                for j in range(i + 1, len(generation)):
+                    a, b = generation[i], generation[j]
+                    assert not nx.has_path(graph, a, b)
+                    assert not nx.has_path(graph, b, a)
+    # The kick actually changed the outcome vs no kick (not a silent no-op).
+    base = generate_two_motif_graph(
+        n_generations=40, k=3, motif_width=3, birth_separation=3,
+        warmup_events=500, walk_hops=5, background_ratio=10, seed=7)
+    assert set(graph.edges()) != set(base[0].edges())
+
+
+def test_worldtube_drift_on_handbuilt_graph():
+    from sim.graph_generators import worldtube_drift
+
+    # A motif whose membrane at gen 2 is 2 hops from its membrane at gen 0.
+    graph = nx.DiGraph([(0, 1), (1, 2)])
+    gens = [[0], [1], [2]]
+    assert worldtube_drift(graph, gens, gen=2, delta=2, watermark=3) == 2
+    assert worldtube_drift(graph, gens, gen=1, delta=1, watermark=3) == 1
+    assert worldtube_drift(graph, gens, gen=0, delta=1, watermark=3) is None

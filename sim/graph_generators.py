@@ -725,6 +725,8 @@ def generate_two_motif_graph(
     background_ratio=50,
     internal_parents=2,
     charge_biased_routing=False,
+    kick_ticks=0,
+    kick_mode="none",
     seed=None,
     max_nodes=2_000_000,
 ):
@@ -760,9 +762,36 @@ def generate_two_motif_graph(
     retired/radiated members -- the desired channel coupling, split by
     direction: A eating B's wake is matter flowing B -> A, and vice versa).
 
+    Tangential kick (the "angular momentum" initial condition, off by default).
+    For the first `kick_ticks` generations only, each motif's *metabolism* is
+    temporarily made asymmetric relative to its partner -- the dynamical laws
+    (delay, refractive routing, antichain rule) are never touched. Among the
+    candidates the ordinary walk produces and the antichain rule validates, a
+    kick-active generation additionally constrains which are *retained*, by
+    the candidate's undirected distance to the partner's living membrane
+    versus the capturing motif's own distance `d_self`:
+
+    - `kick_mode="none"` (default): no constraint -- identical to the untouched
+      generator (so `kick_ticks=0` or `kick_mode="none"` is the exact control).
+    - `kick_mode="noinfall"`: reject radial-in candidates (dist < d_self) --
+      during the burn the motif refuses to grow toward its partner; captures
+      land iso-distant or outward.
+    - `kick_mode="iso"`: retain only iso-distant candidates (dist == d_self) --
+      pure tangential growth along the equidistance shell; the strongest and
+      most starvation-prone variant.
+
+    After `kick_ticks` the partner is never referenced again -- this is a
+    preparation of the initial state, exactly like the birth separation `D`
+    and mass `W`, not a change of law. `kick_ticks` is the sanctioned
+    initial-condition parameter (how much "angular momentum" is prepared);
+    whether any induced lateral drift *persists* past the burn is the
+    emergent-inertia question the orbit test exists to answer, not something
+    the burn can force.
+
     Returns `(graph, generations_a, generations_b, info)` where `info` is a
     dict with `realized_separation`, `capture_counts_a/b` (per generation),
-    `contact_living`, `contact_wake_by_a/b`, and `external_time_a/b`.
+    `contact_living`, `contact_wake_by_a/b`, `first_living_gen`,
+    `first_wake_gen`, `id_watermarks`, and `external_time_a/b`.
     """
     if internal_parents < 2:
         raise ValueError("braiding requires internal_parents >= 2")
@@ -770,6 +799,8 @@ def generate_two_motif_graph(
         raise ValueError("k must be >= internal_parents")
     if motif_width < 2:
         raise ValueError("motif_width must be >= 2")
+    if kick_mode not in ("none", "noinfall", "iso"):
+        raise ValueError("kick_mode must be 'none', 'noinfall', or 'iso'")
 
     rng = np.random.default_rng(seed)
     graph = nx.DiGraph()
@@ -883,6 +914,22 @@ def generate_two_motif_graph(
         new_generation_set = set()
         parent_charges = []
         captures = 0
+
+        # Tangential kick (preparation only, first kick_ticks generations):
+        # snapshot the distance field from the partner's living membrane and
+        # this motif's own distance to it. Retention of otherwise-valid
+        # candidates is then constrained by kick_mode. Nothing here changes
+        # how candidates are produced (the walk) or judged causally (the
+        # antichain rule) -- only which of the already-valid ones the motif
+        # keeps, and only during the burn window.
+        kick_active = kick_mode != "none" and gen_index < kick_ticks
+        dist_to_partner = None
+        d_self = None
+        if kick_active:
+            dist_to_partner = _hops_at_time(graph, list(living_other), next_id)
+            self_dists = [dist_to_partner[m] for m in previous if m in dist_to_partner]
+            d_self = min(self_dists) if self_dists else None
+
         for _ in range(motif_width):
             if next_id >= max_nodes:
                 raise RuntimeError(f"max_nodes ({max_nodes}) reached at generation {gen_index}")
@@ -897,6 +944,13 @@ def generate_two_motif_graph(
                 attempts += 1
                 if candidate in chosen or candidate in previous_set or candidate in new_generation_set:
                     continue
+                if kick_active and d_self is not None:
+                    # None distance = unreachable from partner = maximally "away".
+                    dc = dist_to_partner.get(candidate)
+                    if kick_mode == "noinfall" and dc is not None and dc < d_self:
+                        continue
+                    if kick_mode == "iso" and dc != d_self:
+                        continue
                 candidate_ancestors = ancestors[candidate]
                 independent = all(
                     not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
@@ -1069,6 +1123,26 @@ def wake_gap(graph, generations_from, generations_to, source_generation, target_
     if not wake:
         return None
     return _hops_at_time(graph, generations_to[target_generation], watermark, targets=wake)
+
+
+def worldtube_drift(graph, generations, gen, delta, watermark):
+    """Proper drift: undirected hop distance a motif's membrane has moved over
+    `delta` generations, measured in the graph as of `watermark`.
+
+    Distance between the membrane at `gen` and the membrane at `gen - delta`
+    -- how far the body's own neighbourhood has slid through the flux. Combined
+    with the radial change (delta of the inter-tube distance from
+    `intertube_metrics`), this separates displacement into "toward/away from
+    partner" (radial) and "the rest" (tangential drift -- the lateral motion
+    the angular-momentum kick is meant to induce and, more importantly, that
+    depletion-drag inertia is meant to sustain after the burn). None if the two
+    membranes are not mutually reachable at that time.
+    """
+    if gen - delta < 0:
+        return None
+    return _hops_at_time(
+        graph, generations[gen], watermark, targets=generations[gen - delta]
+    )
 
 
 def first_contact_lag(graph, generations_from, generations_to, anchor, max_lag):
