@@ -237,6 +237,29 @@ silence-vs-merger bimodality is a race at birth (bridge must form within
 The recession's numeric rate is architecture-specific (tube-advance
 kinematics); the horizon phenomenon is structural.
 
+An "angular momentum" attempt then tried to desax the radial merger into a
+stationary orbit via a tangential-kick initial condition
+(`generate_two_motif_graph(kick_ticks=, kick_mode=)`: a burn window of
+metabolic asymmetry relative to the partner, laws untouched, partner
+forgotten after — `kick_ticks=0`/`none` reproduces the untouched generator
+bit-for-bit). Verdict (same file, last section): **negative, by ejection**.
+The reject-a-distance-class burn starves the motif (capture 2-9% vs 100%),
+so tube kinematics fling the bodies to d~54 by generation 25 — past the 2:1
+horizon before the burn ends — and all runs go silent (every mode, both kick
+lengths, both routings). The proper-motion decomposition (radial vs a
+heuristic tangential scalar T) shows T=0 during and after the burn: the
+metabolic asymmetry injects no lateral drift at all, and even the unkicked
+control shows no *persistent* tangential drift (T>0 only as close-range
+membrane noise once bodies fuse). The structural finding: **the substrate
+has no angular momentum because it has no inertia** — it conserves what a
+body is (closure) and where it is (its neighbourhood), but not how it is
+moving (no dynamical variable carries a rate; the depletion-drag
+momentum-memory hypothesis is unsupported). The two-body sector is now
+closed at this scale: silence or radial merger, never a stable separation.
+Do not tune kick_ticks/mode to seek a channel — an orbit would require an
+ontological addition giving the substrate a conserved rate, not an initial
+condition or a knob.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

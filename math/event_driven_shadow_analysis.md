@@ -1026,3 +1026,95 @@ only metric available (no embedding); and the recession rate is set by the
 tube-advance kinematics of this generator, so its numeric value (1.08) is
 architecture-specific even though the horizon phenomenon (expansion vs
 signal-speed competition) is structural.
+
+## The orbit test: no angular momentum, because no inertia
+
+The bimodality (silence or radial merger) motivated an "angular momentum"
+attempt: a tangential kick injected as a strict initial condition
+(`kick_ticks` generations of metabolic asymmetry relative to the partner --
+`noinfall` refuses radial-in captures, `iso` keeps only equidistant ones;
+dynamical laws untouched, partner never referenced after the burn).
+Pre-registered success = a post-burn stationary channel (late coupling,
+no merger, flat d(g) band >= 300 generations, inter-tube width > 0). Proper
+motion was decomposed into radial (inter-tube d change) and a heuristic
+tangential scalar T = sqrt(S^2 - R^2) over a 20-generation window (S = the
+membrane's own hop displacement; Euclidean analogy, flagged: T is meaningful
+only as "drift not explained by radial change").
+
+Protocol: k=3, W=4, warmup=20000, hops=3, D=7 (per-seed fallback), 5 seeds,
+1200 generations. Controls: `kick_ticks=0`/`none` (reproduce the bimodality),
+and blind+kick (a channel there would be a burn artifact).
+
+### Raw results
+
+**Control (refractive, no kick)** reproduces the known bimodality exactly:
+seeds 3,4 merge (@60, @124), seeds 1,5 couple then recede (fossil), seed 2
+silent. Proper-motion decomposition: T is nonzero (5-15) *only* in the merged
+seeds and *only* at close range (d = 1-2) -- i.e. it is the wiggle of two
+fused membranes sitting on top of each other, not orbital drift. In every
+non-merging seed T -> 0 by generation 50-100. **No persistent tangential
+drift arises naturally.**
+
+**Every kicked run -- `noinfall` kt=25, `noinfall` kt=50, `iso` kt=25, and
+the blind+kick control -- is SILENT (0 couplings, 0 contacts) across all 5
+seeds.** Two things happen together:
+
+| config | burn capture | d(g) at g25 | d(g) at g100 | outcome | T (any g) |
+|---|---|---|---|---|---|
+| control (no kick) | 100% | ~11 | 40-96 (bimodal) | 2 merge, 2 couple, 1 silent | 0 except at merge |
+| noinfall kt25 | 4-9% | ~54 | ~137 | 5/5 silent | 0 throughout |
+| noinfall kt50 | 2-4% | ~54 | ~159 | 5/5 silent | 0 throughout |
+| iso kt25 | 4-8% | ~54 | ~135 | 5/5 silent | 0 throughout |
+| blind noinfall kt25 | 9-14% | ~53 | ~133 | 5/5 silent | 0 throughout |
+
+### Reading -- the burn starves, and there is no inertia
+
+**The kick did not inject tangential momentum; it starved the body and let
+tube kinematics eject it radially.** The reject-a-distance-class burn drops
+capture to 2-9% (vs 100%): during the window the motif is a nearly bare
+braided tube taking in almost no flux, and tube-advance kinematics fling the
+two bodies to d ~ 54 by generation 25 -- roughly 2 hops/generation of pure
+recession, far past coupling range before the burn even ends. By the time
+metabolism resumes (~60% after the burn) the partner is gone over the 2:1
+horizon. This is failure mode #2 (ejection), reached deterministically for
+every mode, every kick length, both routings. Neither delayed merger
+(orbital decay) nor a razor's-edge channel appeared -- the kicked bodies
+never approach at all.
+
+**Crucially, T = 0 during the burn as well as after it.** The metabolic
+asymmetry produced no lateral drift even while active: forbidding radial-in
+captures does not push the body sideways along the equidistance shell, it
+just removes captures and lets radial recession dominate. The mechanism
+fails upstream of the inertia question -- it cannot create tangential motion
+in the first place.
+
+**And the inertia question itself, answered by the control, is negative.**
+Even in the natural dynamics, no tangential drift persists: T is zero in
+every open (non-merged) configuration, and nonzero only as close-range
+membrane noise once bodies have fused. The depletion-drag hypothesis --
+that a body's motion through the flux would leave a self-avoiding wake
+sustaining its drift -- is not supported: this substrate exhibits
+*position* persistence (a motif stays a coherent body) but no *velocity*
+persistence (no momentum memory). A body moves only while actively pushed,
+and the only push available is radial (tube advance + gravitational
+knitting). There is no free tangential coordinate that, once set in motion,
+keeps moving.
+
+### Verdict
+
+The orbit test fails its pre-registered criterion, by ejection, and adds a
+structural reason the Earth-Mars channel was never reachable: **the model
+has no angular momentum because it has no inertia.** Classical orbits are
+stabilized by conserved angular momentum -- a velocity that persists without
+being driven. This substrate conserves *what a body is* (closure) and *where
+it is* (its neighbourhood), but not *how it is moving*: there is no dynamical
+variable carrying a rate. Combined with the metrology (recession, 2:1
+horizon, zipper infall), the two-body sector is now fully characterized and
+closed at this scale: the only outcomes are silence (lost over the horizon)
+or radial merger (caught by the zipper), with no stable separation between,
+because nothing in the rules stores momentum. Per discipline: no knob was
+tuned to seek a channel, the starvation confound is stated rather than
+engineered around, and the negative inertia result is reported as the
+substantive finding. Making orbits would require an ontological addition
+that gives the substrate a conserved rate -- not an initial condition, and
+not a tuning of the existing laws.

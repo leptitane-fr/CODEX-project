@@ -117,7 +117,17 @@ growth-exponent measurement, so the regimes can be compared directly:
   refractive runs vs 0/10 blind, with timed infall (wake coupling, then body
   contact ~45-110 generations later, then merger) — but no stationary
   inter-body channel forms (outcomes are bimodal: silence or fusion), so
-  "space between bodies" still does not exist in the model.
+  "space between bodies" still does not exist in the model. Observational
+  metrology then proved the metric recedes ~1.08 hops/generation and outruns
+  the radiated signal 2:1 (a measured causal event horizon), and that infall
+  is a three-phase "zipper" (capture-edge knitting), not constant
+  acceleration. An "angular momentum" attempt (a tangential-kick initial
+  condition, `kick_ticks`/`kick_mode` on `generate_two_motif_graph`, laws
+  untouched) then failed by ejection: the burn starves the body and the
+  proper-motion decomposition shows **no tangential drift is injected and none
+  persists** — the substrate has no angular momentum because **it has no
+  inertia** (it conserves what a body is and where it is, but not how it
+  moves). See `math/event_driven_shadow_analysis.md` for the full arc.
 
 ## Reproducibility
 
