@@ -414,18 +414,30 @@ captures in a disjoint time-window; `turnover`/`occupancy_mean`/
 emergent observable resolves three states of matter, ordered monotonically
 by flux supply** — gas (abundance, turnover 0.96, occupancy 0.12, 0 frozen
 bonds), liquid (scarcity, 0.81 / 0.21), cold liquid (2 ev/body, 0.71 / 0.28)
-— and at low flux **plus a long horizon (600 gen), 2/11 seeds crystallize
-into a solid** (turnover collapses to ~0.08-0.29, frozen_fraction jumps to
-0.56-0.93): a sharp, stochastic, time-driven nucleation (the rest stay
+— and at low flux **plus a long horizon, some seeds crystallize into a
+solid** (turnover collapses to ~0.08-0.29, frozen_fraction jumps to
+0.56-0.94): a sharp, stochastic, time-driven nucleation (the rest stay
 supercooled-liquid, with a pre-freezing continuum). So flux alone (at 250
-gen) does not freeze it; flux-low + time does, via nucleation. Methodology
-lesson baked into the tool: use **disjoint** windows (an overlapping sliding
-window pins turnover to a width floor and hides the signal); the `turnover`
-metric is partly density-confounded, so read it with the density-free
-per-bond `occupancy_mean`/`frozen_fraction`, which move the same way.
-Caveats: "temperature/liquid/solid" are analogies (no derived free energy);
-nucleation rate ~2/11 is small-sample. Do not tune toward a target — flux
-supply and horizon are the swept physical controls, not fitted knobs.
+gen) does not freeze it; flux-low + time does, via nucleation. A
+**crystal-vs-glass horizon study** (12 seeds × 1500 gen, 2 ev/body) then
+settled the endgame: the nucleation rate **plateaus at ~17%** (2/12 at 1500
+gen = the *same* 2 seeds as 2/11 at 600 gen — zero new nucleation across 900
+extra generations), crystallization is an **early-or-never** event (~gen
+250-600), and the 10 non-nucleated seeds stay trapped in a metastable
+supercooled liquid — a **causal glass**. Freezing is not fatal: the
+substrate supports gas, liquid, crystal *and* glass. Seed anatomy (2
+crystallizers): the crystal **nucleates in the saturated core** (core-core
+bonds freeze at onset, median block 9) and radiates outward (free-valence
+surface bonds lock 2-6 blocks / ~50-150 gen later) — the surface is the last
+to freeze, not the first. Methodology lesson baked into the tool: use
+**disjoint** windows (an overlapping sliding window pins turnover to a width
+floor and hides the signal); the `turnover` metric is partly
+density-confounded, so read it with the density-free per-bond
+`occupancy_mean`/`frozen_fraction`, which move the same way. Caveats:
+"temperature/liquid/solid/glass" are analogies (no derived free energy);
+nucleation rate ~2/12 is small-sample and a finite horizon can't prove no
+late nucleation ever occurs. Do not tune toward a target — flux supply and
+horizon are the swept physical controls, not fitted knobs.
 
 ## Keeping this file current
 

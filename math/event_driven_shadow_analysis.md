@@ -1729,7 +1729,61 @@ This is the phenomenology of a first-order freezing transition with
 **stochastic nucleation**: near the freezing point some samples nucleate a
 permanent directed-bond network (a "solid"), the rest remain in a metastable
 supercooled liquid, with a spread of pre-freezing states between. Nucleation
-rate here ~2/11 (~18%) at 600 generations; presumably rising with horizon.
+rate here ~2/11 (~18%) at 600 generations.
+
+### Crystal or glass? The nucleation horizon (12 seeds x 1500 generations)
+
+The decisive question -- is crystallization inevitable given time, or does a
+fraction of the population stay trapped forever in a supercooled state (a
+*causal glass*)? -- was pushed to a long horizon: 12 seeds, cold (2
+events/body), 1500 generations, `frozen_fraction` tracked in five time-fifths
+(~300 generations each) to see *when* each seed freezes.
+
+- **2 of 12 seeds crystallize** (seed 3: final frozen 0.94, turnover 0.08;
+  seed 4: 0.60 / 0.27) -- and both do so **early** (time-fifth 2, ~gen
+  300-600: frozen jumps 0.01 -> 0.87 and 0.01 -> 0.57), then stay frozen for
+  the remaining ~900 generations.
+- **The other 10 seeds plateau.** Their `frozen_fraction` rises to a modest
+  value in the first fifth and then flattens for the rest of the run: seed 1
+  stalls at 0.10, seeds 9-12 at ~0.05-0.10, and seed 6 at a persistent
+  "pre-freeze" 0.36 (a partly-structured cold liquid that never crosses).
+  There is slow residual drift (seed 7 creeps to 0.22 by the end) but **no
+  second sharp nucleation after time-fifth 2 in any seed**.
+- **The rate does not climb toward 1 with time.** It is ~2/11 at 600
+  generations and ~2/12 at 1500 -- the *same two seeds*, no new
+  crystallization across 900 extra generations for the ten that did not
+  nucleate early. The horizon result refutes the earlier "presumably rising
+  with horizon" guess.
+
+**Verdict: TEI invented the glass, not just the crystal.** Freezing is not a
+fatality. Crystallization is an *early* nucleation event (~gen 250-600) or
+never; a seed that has not nucleated by then remains in a metastable
+supercooled liquid indefinitely -- a causal glass -- with a continuum of
+pre-freeze states (seed 6 stuck at 0.36) below the sharp crystals. The
+substrate supports both frozen order and permanent disordered arrest.
+
+### The seed anatomy: nucleation starts in the saturated core
+
+On the two crystallizing seeds, the freeze onset was traced to its origin.
+Each freezing cluster's bodies were classified over the liquid window just
+before onset as *core* (background share < 0.15 = saturated, no free valence)
+or *surface* (background >= 0.30 = still hunting external flux = free
+valence), and the permanent bonds (occupancy >= 0.8) were dated by when each
+first became continuously active:
+
+| seed | onset | core / surface bodies | core-core bonds (median freeze block) | core-surface bonds (median block) |
+|---|---|---|---|---|
+| 3 | ~gen 275 | 13 / 3 | 27 (block 9) | 6 (block 11) |
+| 4 | ~gen 250 | 12 / 6 | 20 (block 9) | 8 (block 15) |
+
+**The crystal nucleates in the hyper-dense saturated core and grows
+outward.** Core-core bonds freeze first, at the onset block itself; the bonds
+tying in the free-valence surface freeze 2-6 blocks (~50-150 generations)
+later. The surface's free valence -- the very thing still searching for
+external flux -- is the *last* to lock, not the first: freezing radiates from
+the already-saturated interior, exactly opposite to a surface-stabilization
+picture. (This is the same core/surface split found in the crystallography
+section, now shown to also order the freezing in time.)
 
 ### Diagnostic: TEI has bought its own thermodynamics
 
@@ -1743,13 +1797,22 @@ directed-bond network. The answer to "can we force turnover to 0 by dropping
 to 2 events/body" is: flux alone (at 250 gen) does not -- but flux-low *plus*
 a long horizon does, via nucleation, in a fraction of runs.
 
-Caveats, stated: "temperature", "liquid", "solid" are descriptive analogies,
-not a derived free energy or a formal order parameter; the nucleation rate
-(~2/11) is a small-sample estimate; the `turnover` metric's density confound
-is defused by `occupancy_mean`/`frozen_fraction` but noted; and no knob was
-tuned toward a target -- flux supply and horizon are the two physical control
-variables of the experiment, swept, not fitted. The recorded next probe (not
-yet run): characterize the nucleation -- does the crystal seed on a specific
-sub-structure (a densest droplet), and does the nucleation rate saturate to 1
-with horizon (freezing is inevitable given time) or plateau below 1 (a true
-supercooled-glass branch)?
+And the freezing is not fatal: the horizon study settles the crystal-vs-glass
+question in favour of **both**. The nucleation rate plateaus (~17%, unchanged
+from 600 to 1500 generations), crystallization is an early-or-never event that
+starts in the saturated droplet core and radiates outward, and the majority of
+the population is trapped indefinitely in a metastable supercooled liquid -- a
+causal glass. So the substrate's matter has a full condensed-phase repertoire:
+gas, liquid, crystal, and glass.
+
+Caveats, stated: "temperature", "liquid", "solid", "glass" are descriptive
+analogies, not a derived free energy or a formal order parameter; the
+nucleation rate (~2/12 at the long horizon, ~2/11 at the short one) is a
+small-sample estimate, and a finite horizon cannot prove that *no* late
+nucleation ever occurs -- only that none did across 900 generations past the
+early window for 10/10 non-nucleated seeds, which is strong evidence for a
+metastable (glass) branch rather than eventual certain freezing; the
+`turnover` metric's density confound is defused by
+`occupancy_mean`/`frozen_fraction` but noted; and no knob was tuned toward a
+target -- flux supply and horizon are the two physical control variables of
+the experiment, swept, not fitted.

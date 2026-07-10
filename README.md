@@ -194,7 +194,13 @@ growth-exponent measurement, so the regimes can be compared directly:
   crystallize a near-permanent directed-bond network (turnover collapses to
   ~0.1, frozen-bond fraction jumps to 0.6–0.9), a sharp stochastic nucleation
   with the rest left supercooled. Flux alone does not freeze it; flux-low +
-  time does. See `math/event_driven_shadow_analysis.md`, last section.
+  time does. A long-horizon study (12 seeds × 1500 gen) then shows freezing
+  is **not fatal**: the nucleation rate **plateaus at ~17%** (early-or-never,
+  no new crystals across 900 extra generations), so the majority stays
+  trapped in a metastable supercooled **causal glass** — the substrate
+  supports gas, liquid, crystal *and* glass. The crystal **nucleates in the
+  saturated droplet core** and radiates outward, the free-valence surface
+  freezing last. See `math/event_driven_shadow_analysis.md`, last section.
 
 ## Reproducibility
 
