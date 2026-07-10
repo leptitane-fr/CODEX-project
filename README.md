@@ -174,11 +174,16 @@ growth-exponent measurement, so the regimes can be compared directly:
   two-phase architecture controlled by flux supply. **Abundance → a gas**
   (60/60 survive, transient contacts, and the few-body capture-lock does
   not reproduce — 0/60: the parasitic binary was a low-density artifact).
-  **Scarcity → condensation**: cross-body diet jumps to ~90%, and a compact
-  cluster accretes monotonically to 9 bodies — a **reciprocal trophic web**
-  (intra-cluster feeding ~96%, no dominant host) that defeats scarcity by
-  collectively recycling its own radiated matter. Zero deaths in either
-  phase: survival and aggregation are the same act. See
+  **Scarcity → condensation**: cross-body diet jumps to ~90%, and bodies
+  condense into a compact **reciprocal trophic web** (intra-cluster feeding
+  ~96%, no dominant host) that defeats scarcity by collectively recycling
+  its own radiated matter. Zero deaths in either phase: survival and
+  aggregation are the same act. A 5-seed crystallography pass shows **the
+  shape is a law, the size is stochastic**: the cluster is always a dense
+  homogeneous mutual-grazing clique — a *liquid droplet* (not a
+  star/chain/ring, no crystalline core), with a saturated core and an
+  unsaturated free-valence surface, but its size varies (4–9 across seeds)
+  and the universe makes several coexisting droplets. See
   `math/event_driven_shadow_analysis.md`, last section.
 
 ## Reproducibility

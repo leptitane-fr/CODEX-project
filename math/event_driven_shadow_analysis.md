@@ -1584,18 +1584,68 @@ generations:
 - **Still zero deaths** -- but the diet flips: cross-body share jumps from
   median ~25% to **median 90% (max 99%)**. When the flux is scarce, bodies
   survive by eating each other's radiated matter.
-- **Contact clusters now condense and grow monotonically**: the dominant
-  cluster accretes 5 -> 8 -> 9 bodies by generation 250 (members are never
-  lost, only gained), with 18/20 bodies in some cluster at the end.
-- The 9-body cluster is a genuine trophic structure: intra-cluster feeding
-  63-99% (median ~96%), **0% extra-cluster**, background 0-8% for the core
-  (34% only for the newest, just-accreted member); feeding is *reciprocal
-  and distributed* (every member eats 3+ partners at 12-29% each -- no
-  dominant host, no parasite hierarchy); compact (pairwise membrane
-  distances 2-6); diet is a mix of living-membrane grazing (19-43%) and
-  wake/fossil recycling. Functionally it is a **closed communal
-  metabolism**: each body's radiated generations are the others' food, so
-  the aggregate recycles its own matter and defeats scarcity collectively.
+- **Contact clusters condense** into dense compact aggregates (pairwise
+  membrane distances 2-6). The cluster-size trajectory is *not* a clean
+  monotone accretion, though -- it fluctuates (fragments and re-forms) and
+  ends, in seed 1, at a 9-body cluster with 18/20 bodies in some cluster;
+  see the crystallography subsection for the 5-seed picture, where final
+  sizes range 4-9 and the growth curve is noisy, but the final architecture
+  is a law.
+- The seed-1 9-body cluster is a genuine trophic structure: intra-cluster
+  feeding 63-99% (median ~96%), **0% extra-cluster**, background 0-8% for
+  the core (34% only for the newest, just-accreted member); feeding is
+  *reciprocal and distributed* (every member eats 3+ partners at 12-29%
+  each -- no dominant host, no parasite hierarchy); diet is a mix of
+  living-membrane grazing (19-43%) and wake/fossil recycling. Functionally
+  it is a **closed communal metabolism**: each body's radiated generations
+  are the others' food, so the aggregate recycles its own matter and defeats
+  scarcity collectively.
+
+### Crystallography of the cluster (5-seed replication)
+
+The scarce condition was replicated on seeds 1-5 (250 generations,
+background_ratio=100, motif_width=4) and the largest end-state contact
+cluster passed under a topological microscope: the directed+weighted trophic
+matrix (fraction of body i's late diet sourced from body j's tube), the
+grazing graph thresholded at successive flow levels, degree/clustering/k-core
+statistics, and per-body core-vs-surface roles.
+
+**Axis 1 -- order vs chaos: a liquid droplet, not a structured crystal.**
+Every seed's cluster is a **dense clique**: density 0.94-1.00, average
+clustering 0.95-1.00, degree Gini 0.00-0.04 (all bodies grazing all bodies,
+egalitarian). This excludes a star (Gini would be high), a chain/polymer
+(clustering would be ~0), and a ring (all degree 2). Progressive
+flow-thresholding is the decisive test for internal structure: as the
+grazing-threshold rises, the clique **dissolves uniformly** (seed 1: density
+0.97 -> 0.69 -> 0.47 -> 0.19 -> 0 across thresholds 0.03..0.30) rather than
+peeling down to a persistent high-order core -- there is no privileged
+"strong bond" that survives, no crystalline sub-lattice. Flow is mostly
+**mutual** (balance 0.71-0.88, where 1 = perfectly reciprocal A<->B, 0 =
+one-way), so the network is a mutualist commune, not a predator-prey
+hierarchy. The order is that of a dense **homogeneous liquid droplet** (a
+van-der-Waals-like condensate), not a molecule with directed valences or a
+crystal with a repeating motif.
+
+**Axis 2 -- valence and surface: yes, a core/surface differentiation.**
+Though the degree topology is flat, free valence is legible in the
+*background* share. Core bodies: background 0-2%, intra-cluster diet
+98-100%, maximal degree -- saturated, fully bonded. Surface bodies:
+background 20-41%, intra 58-66%, reduced degree, and low living-membrane
+share (~5%, so they scavenge fossil and still hunt external background) --
+an unsaturated, just-accreted rim. Typically 1-2 surface bodies per cluster,
+the rest core. This is exactly the core-plus-unsaturated-monolayer structure
+of a condensed aggregate.
+
+**Axis 3 -- reproducibility: the shape is a law, the size is stochastic.**
+Final largest-cluster sizes over seeds 1-5 are 9, 6, 4, 5, 4 (median ~5; the
+9 was the maximum, not the typical), and the universe generally condenses
+into *several* coexisting cliques (e.g. seed 2: 6+5+5), not one. So size and
+count are stochastic in a 4-9 band. But the *architecture* replicates
+exactly: whatever the size, the cluster is always a dense homogeneous
+mutual-grazing clique (density >= 0.94, clustering >= 0.95, Gini ~0, maximal
+k-core) with a saturated core and an unsaturated surface. Condensation
+produces a reproducible *form* (a liquid droplet) at an unpredictable *size*
+-- the same relationship a real liquid has to its droplets.
 
 ### Architecture of what survives
 
@@ -1609,10 +1659,11 @@ when the environment stops feeding bodies individually. "What works
 survives and aggregates" is realized literally: under scarcity, survival
 and aggregation are the same act.
 
-Caveats recorded: one seed in the scarce condition so far (the condensation
-claim is qualitative, pending replication); the death rule never fired in
-either phase, so blind selection has not yet actually killed anything --
-mortality presumably needs either much lower supply, higher N, or longer
-horizons (the population's own recycling may make true starvation
-impossible: a candidate structural conjecture, not a result). The
+Caveats recorded: the scarce condition is now 5-seed (condensation and the
+clique architecture replicate; the *size* does not -- see crystallography
+above); the death rule never fired in any of the ten runs, so blind
+selection has not yet actually killed anything -- mortality presumably needs
+either much lower supply, higher N, or longer horizons (the population's own
+recycling may make true starvation impossible: a candidate structural
+conjecture, not a result). The
 abundance-phase negative (no locks) is 3-seed solid.

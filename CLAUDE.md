@@ -383,14 +383,25 @@ vs 5/5)** — the parasitic binary was a low-density artifact: in a crowd,
 every neighbourhood is a mixed-wake soup and the front's feedback never
 converges on one tube. Scarcity (5 events/body): *condensation* — still
 zero deaths, but cross-body diet jumps to median 90% and contact clusters
-grow monotonically (5→8→9 bodies by g250, 18/20 clustered), forming a
-compact (d 2-6) **reciprocal trophic web** (intra-cluster 63-99%, 0%
-extra-cluster, no dominant host, living-grazing 19-43% + wake recycling) —
-a closed communal metabolism that defeats scarcity by recycling its own
-matter. Survival and aggregation are the same act; the death rule has never
-actually fired (candidate conjecture, not result: population recycling may
-make true starvation impossible). Caveats: scarce condition is 1-seed so
-far (qualitative), abundance negative is 3-seed. `info["capture_logs"]`
+condense into a compact (d 2-6) **reciprocal trophic web** (intra-cluster
+63-99%, 0% extra-cluster, no dominant host, living-grazing 19-43% + wake
+recycling) — a closed communal metabolism that defeats scarcity by recycling
+its own matter. Survival and aggregation are the same act; the death rule
+has never actually fired (candidate conjecture, not result: population
+recycling may make true starvation impossible). A 5-seed crystallography
+pass (scarce, seeds 1-5) then characterized the cluster: **the shape is a
+law, the size is stochastic**. Topology is always a **dense homogeneous
+liquid droplet** — a mutual-grazing clique (density ≥0.94, clustering ≥0.95,
+degree-Gini ~0, flow balance 0.71-0.88), NOT a star/chain/ring, and
+progressive flow-thresholding dissolves it uniformly (no crystalline core,
+no privileged strong bond). There **is** a core/surface differentiation
+(core: bg 0-2%, intra 98-100%, saturated; surface: bg 20-41%, reduced
+degree, still hunting external flux = free valence). But final cluster size
+is stochastic (seeds 1-5: 9,6,4,5,4; median ~5, and the universe makes
+*several* coexisting droplets), and the growth curve is noisy (not the
+clean monotone accretion the single-seed pass suggested). Caveats: scarce
+now 5-seed (architecture replicates, size does not); abundance negative is
+3-seed; death rule never fired in any of the 10+ runs. `info["capture_logs"]`
 carries per-body per-generation captured ids — the raw material for the
 trophic analysis (owner/living/fossil classification is post-hoc, see the
 analysis file).
