@@ -168,6 +168,18 @@ growth-exponent measurement, so the regimes can be compared directly:
   own causal entanglements, so there is no causally-fresh space to move
   into; the one escape observed is, again, locking onto another body's
   worldtube. See `math/event_driven_shadow_analysis.md` for the full arc.
+- `generate_soup_graph` — the **primordial soup** (material genesis): N=20
+  bodies, all under the accretion-front rule, sown at random, blind
+  selection (pre-registered death cutoff; fossils stay edible). Result: a
+  two-phase architecture controlled by flux supply. **Abundance → a gas**
+  (60/60 survive, transient contacts, and the few-body capture-lock does
+  not reproduce — 0/60: the parasitic binary was a low-density artifact).
+  **Scarcity → condensation**: cross-body diet jumps to ~90%, and a compact
+  cluster accretes monotonically to 9 bodies — a **reciprocal trophic web**
+  (intra-cluster feeding ~96%, no dominant host) that defeats scarcity by
+  collectively recycling its own radiated matter. Zero deaths in either
+  phase: survival and aggregation are the same act. See
+  `math/event_driven_shadow_analysis.md`, last section.
 
 ## Reproducibility
 

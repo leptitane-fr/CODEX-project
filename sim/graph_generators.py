@@ -1573,6 +1573,258 @@ def triangle_angle(graph, generations, watermarks, generation):
     return math.acos(max(-1.0, min(1.0, cos_a)))
 
 
+def generate_soup_graph(
+    n_generations,
+    n_bodies,
+    k,
+    motif_width,
+    warmup_events=20000,
+    walk_hops=3,
+    background_ratio=400,
+    internal_parents=2,
+    death_window=5,
+    charge_biased_routing=True,
+    seed=None,
+    max_nodes=2_000_000,
+):
+    """Primordial soup: `n_bodies` independent closed motifs, ALL under the
+    accretion-front rule, with blind selection and no safety net.
+
+    The material-genesis experiment (see math/event_driven_shadow_analysis.md,
+    last section): instead of a prepared few-body laboratory, a swarm of
+    bodies is sown at random over the warmup flux (fresh charge-0 seeds, no
+    separation control -- adjacent births are part of the selection) and
+    every body runs `test_mode="front"` metabolism (walks start from the
+    membrane's external in-edges, the "QR code" pool; fallback to the
+    membrane when the pool is empty). Consumption and radiation as in the
+    other motif generators; refractive routing by default.
+
+    Death (pre-registered operational cutoff, not a tuned threshold): a body
+    that captures nothing for `death_window` consecutive generations
+    dissolves -- its final membrane retires into the flux (one last radiation
+    push) and its braid stops being computed. The fossil worldtube stays in
+    the graph and stays edible (scavenging allowed). Healthy bodies at the
+    measured capture rates (>= 67%) essentially never trigger the cutoff;
+    fully starved ones (~7%) trigger it within tens of generations.
+
+    Per tick, bodies advance one generation each in fixed index order (the
+    same documented ordering asymmetry as the two/three-motif generators),
+    then `background_ratio` background events fire.
+
+    Returns `(graph, generations, info)` where `generations` is a list of
+    per-body generation lists and `info` carries `alive` (list of bool),
+    `death_generations` (generation index of death, None if alive),
+    `capture_logs` (per body, per generation, the list of captured node ids
+    -- the raw material for trophic analysis: who eats whom, living or
+    fossil), `id_watermarks`, and `warmup_node_count`.
+    """
+    if internal_parents < 2:
+        raise ValueError("braiding requires internal_parents >= 2")
+    if k <= internal_parents:
+        raise ValueError("k must be > internal_parents (need at least one capture slot)")
+    if motif_width < 2:
+        raise ValueError("motif_width must be >= 2")
+    if n_bodies < 2:
+        raise ValueError("a soup needs at least 2 bodies")
+
+    rng = np.random.default_rng(seed)
+    graph = nx.DiGraph()
+    n0 = k
+    graph.add_nodes_from(range(n0))
+    charge = [0] * n0
+    current_gen = [0] * n0
+    ancestors = [0] * n0
+    max_attempts = max(50, k * 20)
+
+    def delay(load):
+        return 1.0 + load
+
+    def new_slot():
+        charge.append(0)
+        current_gen.append(0)
+        ancestors.append(0)
+
+    heap = []
+    next_id = n0
+    for node in range(n0):
+        heapq.heappush(heap, (1.0, node, 0))
+    routing_charge = charge if charge_biased_routing else None
+    background_time = 0.0
+
+    def fire_background_event(t, trigger):
+        nonlocal next_id
+        chosen = _pick_independent_parents(
+            graph, trigger, k, rng, walk_hops, ancestors, max_attempts, charge=routing_charge
+        )
+        new_node = next_id
+        next_id += 1
+        graph.add_node(new_node)
+        new_slot()
+        new_ancestors = 0
+        for p in chosen:
+            graph.add_edge(p, new_node)
+            new_ancestors |= ancestors[p] | (1 << p)
+            charge[p] += 1
+            current_gen[p] += 1
+            heapq.heappush(heap, (t + delay(charge[p]), p, current_gen[p]))
+        ancestors[new_node] = new_ancestors
+        heapq.heappush(heap, (t + delay(0), new_node, current_gen[new_node]))
+
+    t = 0.0
+    for _ in range(warmup_events):
+        if next_id >= max_nodes:
+            raise RuntimeError(f"max_nodes ({max_nodes}) reached during warmup")
+        t, trigger, gen = heapq.heappop(heap)
+        if gen != current_gen[trigger]:
+            continue
+        fire_background_event(t, trigger)
+    background_time = t
+    warmup_node_count = next_id
+
+    # --- sow the swarm on random fresh nodes, no separation control ---
+    fresh = [node for node in range(next_id) if charge[node] == 0]
+    if len(fresh) < n_bodies * motif_width:
+        raise RuntimeError("not enough fresh nodes after warmup to sow the swarm")
+    rng.shuffle(fresh)
+    used = set()
+    generations = []
+    tubes = []
+    cursor = 0
+    for _ in range(n_bodies):
+        while fresh[cursor] in used:
+            cursor += 1
+        seed_node = fresh[cursor]
+        used.add(seed_node)
+        distances = {seed_node: 0}
+        queue = deque([seed_node])
+        cluster = [seed_node]
+        while queue and len(cluster) < motif_width:
+            u = queue.popleft()
+            for v in list(graph.predecessors(u)) + list(graph.successors(u)):
+                if v < warmup_node_count and v not in distances:
+                    distances[v] = distances[u] + 1
+                    queue.append(v)
+                    if charge[v] == 0 and v not in used and len(cluster) < motif_width:
+                        cluster.append(v)
+                        used.add(v)
+        if len(cluster) < motif_width:
+            raise RuntimeError("could not sow all bodies as localized clusters")
+        generations.append([cluster])
+        tubes.append(set(cluster))
+
+    alive = [True] * n_bodies
+    death_generations = [None] * n_bodies
+    zero_streaks = [0] * n_bodies
+    capture_logs = [[] for _ in range(n_bodies)]
+    id_watermarks = np.zeros(n_generations, dtype=np.int64)
+
+    def advance_body(i):
+        nonlocal next_id
+        previous = generations[i][-1]
+        previous_set = set(previous)
+        width = len(previous)
+        new_generation = []
+        new_generation_set = set()
+        captured_all = []
+        front_pool = [
+            p for m in previous for p in graph.predecessors(m) if p not in tubes[i]
+        ]
+        for _ in range(motif_width):
+            if next_id >= max_nodes:
+                raise RuntimeError(f"max_nodes ({max_nodes}) reached")
+            if front_pool:
+                start = front_pool[rng.integers(0, len(front_pool))]
+            else:
+                start = previous[rng.integers(0, width)]
+            picks = rng.choice(width, size=internal_parents, replace=False)
+            chosen = [previous[j] for j in picks]
+            captured_nodes = []
+            attempts = 0
+            while len(captured_nodes) < k - internal_parents and attempts < max_attempts:
+                candidate = _local_walk_candidate(
+                    graph, start, rng, walk_hops, charge=routing_charge
+                )
+                attempts += 1
+                if (
+                    candidate in chosen
+                    or candidate in previous_set
+                    or candidate in new_generation_set
+                    or candidate in captured_nodes
+                ):
+                    continue
+                candidate_ancestors = ancestors[candidate]
+                if not all(
+                    not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
+                    for p in chosen
+                ):
+                    continue
+                chosen.append(candidate)
+                captured_nodes.append(candidate)
+            new_node = next_id
+            next_id += 1
+            graph.add_node(new_node)
+            new_slot()
+            new_ancestors = 0
+            for p in chosen:
+                graph.add_edge(p, new_node)
+                new_ancestors |= ancestors[p] | (1 << p)
+                charge[p] += 1
+            ancestors[new_node] = new_ancestors
+            new_generation.append(new_node)
+            new_generation_set.add(new_node)
+            captured_all.extend(captured_nodes)
+            for captured in captured_nodes:
+                current_gen[captured] += 1
+                heapq.heappush(
+                    heap, (background_time + delay(charge[captured]), captured, current_gen[captured])
+                )
+        generations[i].append(new_generation)
+        tubes[i].update(new_generation)
+        # Radiation: the retired generation re-enters the flux (TEI 6bis.2).
+        for retired in previous:
+            current_gen[retired] += 1
+            heapq.heappush(
+                heap, (background_time + delay(charge[retired]), retired, current_gen[retired])
+            )
+        capture_logs[i].append(captured_all)
+        return len(captured_all)
+
+    for g in range(n_generations):
+        for i in range(n_bodies):
+            if not alive[i]:
+                continue
+            captures = advance_body(i)
+            zero_streaks[i] = zero_streaks[i] + 1 if captures == 0 else 0
+            if zero_streaks[i] >= death_window:
+                alive[i] = False
+                death_generations[i] = g
+                # Dissolution: the final membrane retires into the flux too.
+                for member in generations[i][-1]:
+                    current_gen[member] += 1
+                    heapq.heappush(
+                        heap,
+                        (background_time + delay(charge[member]), member, current_gen[member]),
+                    )
+        for _ in range(background_ratio):
+            if not heap or next_id >= max_nodes:
+                break
+            t2, trigger, gen = heapq.heappop(heap)
+            if gen != current_gen[trigger]:
+                continue
+            background_time = t2
+            fire_background_event(t2, trigger)
+        id_watermarks[g] = next_id
+
+    info = {
+        "alive": alive,
+        "death_generations": death_generations,
+        "capture_logs": capture_logs,
+        "id_watermarks": id_watermarks,
+        "warmup_node_count": warmup_node_count,
+    }
+    return graph, generations, info
+
+
 def observer_growth_curve(graph, worldline):
     """Number of distinct nodes in the Observer's causal future, indexed by its own tick count.
 

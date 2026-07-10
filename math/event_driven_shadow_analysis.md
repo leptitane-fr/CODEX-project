@@ -1534,3 +1534,85 @@ sign, A and C both terminate in binding. A self-perpetuating displacement
 state pointing at *space* does not exist in this substrate at this scale;
 the missing ingredient is now localized in the geometry itself -- a body
 has no causally-fresh space around it to move *into*.
+
+## The primordial soup: material genesis under blind selection
+
+### Paradigm shift
+
+The kinematics program is closed: option A proved that directionality in
+this substrate terminates in strong interaction -- in *matter*. The program
+therefore pivots from Galilean celestial mechanics to material genesis:
+sow many bodies, let blind selection act, and describe the architecture of
+what survives. `generate_soup_graph`: N = 20 independent bodies, ALL under
+the option-A accretion-front rule, sown on random fresh warmup nodes with
+*no separation control* (adjacent births are part of the selection), no
+safety net. Death is a pre-registered operational cutoff, not a tuned
+threshold: zero captures for 5 consecutive generations dissolves the body
+(final membrane retires into the flux; the braid stops being computed; the
+fossil worldtube stays edible -- scavenging allowed). Healthy bodies at the
+measured capture rates essentially never trigger it; fully starved ones
+trigger it within tens of generations. Background supply stays at the
+few-body labs' 20 events/body/tick (background_ratio=400 for N=20) so the
+metabolic environment is comparable, not a new knob.
+
+### Standard condition (abundance): a gas, and a negative that matters
+
+3 seeds x 250 generations, plus one 500-generation horizon check:
+
+- **60/60 bodies survive; the death rule never fires.** Capture 96-100%
+  everywhere. At this supply the soup is a land of plenty and selection has
+  nothing to select.
+- **The pairwise capture-lock of the 3-body lab does NOT reproduce: 0/60**
+  (vs 5/5 deterministic in the lab). No body draws >= 50% of its diet from
+  any single source; cross-body diet share is median 21-27% (max 51-59%),
+  spread thin across many partners' wakes. Mechanism: in the lab the only
+  persistent structure in range was the one reference body, so the front's
+  positive feedback converged onto it; in a crowded universe every
+  neighbourhood is a mixture of many bodies' radiation, the pool never
+  becomes a monoculture, and the lock never forms. **The parasitic binary
+  was a low-density artifact, not the generic fate of the front rule.**
+- Contact clusters (membranes within 4 hops) exist at every snapshot but
+  are *transient* -- they form, dissolve and reform with different members
+  every ~50 generations, and do not grow over 500 generations. A gas of
+  grazers with fleeting encounters.
+
+### Scarce condition (background 5 events/body): condensation
+
+Same rule, same death cutoff, background_ratio=100, seed 1, 250
+generations:
+
+- **Still zero deaths** -- but the diet flips: cross-body share jumps from
+  median ~25% to **median 90% (max 99%)**. When the flux is scarce, bodies
+  survive by eating each other's radiated matter.
+- **Contact clusters now condense and grow monotonically**: the dominant
+  cluster accretes 5 -> 8 -> 9 bodies by generation 250 (members are never
+  lost, only gained), with 18/20 bodies in some cluster at the end.
+- The 9-body cluster is a genuine trophic structure: intra-cluster feeding
+  63-99% (median ~96%), **0% extra-cluster**, background 0-8% for the core
+  (34% only for the newest, just-accreted member); feeding is *reciprocal
+  and distributed* (every member eats 3+ partners at 12-29% each -- no
+  dominant host, no parasite hierarchy); compact (pairwise membrane
+  distances 2-6); diet is a mix of living-membrane grazing (19-43%) and
+  wake/fossil recycling. Functionally it is a **closed communal
+  metabolism**: each body's radiated generations are the others' food, so
+  the aggregate recycles its own matter and defeats scarcity collectively.
+
+### Architecture of what survives
+
+Two phases, controlled by flux supply: **abundance -> a gas of independent
+grazers** (no deaths, no bonds, transient contacts); **scarcity -> a
+condensed communal cluster** (no deaths either -- matter is its own buffer:
+rather than starve, bodies turn to each other's wakes, and that collective
+turn *is* the aggregation). Aggregation in this substrate is not pairwise
+parasitism scaled up -- it is a reciprocal trophic web that emerges exactly
+when the environment stops feeding bodies individually. "What works
+survives and aggregates" is realized literally: under scarcity, survival
+and aggregation are the same act.
+
+Caveats recorded: one seed in the scarce condition so far (the condensation
+claim is qualitative, pending replication); the death rule never fired in
+either phase, so blind selection has not yet actually killed anything --
+mortality presumably needs either much lower supply, higher N, or longer
+horizons (the population's own recycling may make true starvation
+impossible: a candidate structural conjecture, not a result). The
+abundance-phase negative (no locks) is 3-seed solid.

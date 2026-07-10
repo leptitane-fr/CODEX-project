@@ -370,6 +370,31 @@ search for an intermediate independence scope between "chosen parents" and
 (the gate failed first); the frontier profile is a pure observation on the
 unmodified plain dynamics.
 
+The program then pivoted from kinematics to **material genesis**
+(`generate_soup_graph`): N=20 bodies, all under the option-A front rule,
+sown at random (no separation control), blind selection with a
+pre-registered death cutoff (0 captures for 5 consecutive generations →
+dissolution; fossil stays edible). Verdict (same file, last section): a
+**two-phase architecture controlled by flux supply**. Abundance (20
+events/body/tick, the labs' standard): a *gas* — 60/60 survive, capture
+96-100%, cross-body diet median 21-27%, contacts transient over 500
+generations, and **the 3-body lab's capture-lock does not reproduce (0/60
+vs 5/5)** — the parasitic binary was a low-density artifact: in a crowd,
+every neighbourhood is a mixed-wake soup and the front's feedback never
+converges on one tube. Scarcity (5 events/body): *condensation* — still
+zero deaths, but cross-body diet jumps to median 90% and contact clusters
+grow monotonically (5→8→9 bodies by g250, 18/20 clustered), forming a
+compact (d 2-6) **reciprocal trophic web** (intra-cluster 63-99%, 0%
+extra-cluster, no dominant host, living-grazing 19-43% + wake recycling) —
+a closed communal metabolism that defeats scarcity by recycling its own
+matter. Survival and aggregation are the same act; the death rule has never
+actually fired (candidate conjecture, not result: population recycling may
+make true starvation impossible). Caveats: scarce condition is 1-seed so
+far (qualitative), abundance negative is 3-seed. `info["capture_logs"]`
+carries per-body per-generation captured ids — the raw material for the
+trophic analysis (owner/living/fossil classification is post-hoc, see the
+analysis file).
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

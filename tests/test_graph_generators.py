@@ -10,6 +10,7 @@ from sim.graph_generators import (
     generate_braided_motif_graph,
     generate_event_driven_shadow_graph,
     generate_random_dag,
+    generate_soup_graph,
     generate_three_motif_graph,
     generate_two_motif_graph,
     generate_tei_shadow_graph,
@@ -708,6 +709,70 @@ def test_three_motif_forced_mode_moves_the_transverse_angle():
     angles = [a for a in angles if a is not None]
     assert len(angles) >= 3
     assert max(angles) - min(angles) > 0.05  # radians; the angle is not frozen
+
+
+def _small_soup(**kw):
+    params = dict(
+        n_generations=25, n_bodies=5, k=3, motif_width=3,
+        warmup_events=2000, walk_hops=3, background_ratio=60, seed=11,
+    )
+    params.update(kw)
+    return generate_soup_graph(**params)
+
+
+def test_soup_rejects_invalid_parameters():
+    with pytest.raises(ValueError):  # < 2 bodies is not a soup
+        _small_soup(n_bodies=1)
+    with pytest.raises(ValueError):  # no capture slot
+        _small_soup(k=2)
+    with pytest.raises(ValueError):
+        _small_soup(motif_width=1)
+
+
+def test_soup_preserves_causal_invariants():
+    graph, generations, info = _small_soup()
+    assert nx.is_directed_acyclic_graph(graph)
+    for body in generations:
+        for generation in body:
+            for i in range(len(generation)):
+                for j in range(i + 1, len(generation)):
+                    a, b = generation[i], generation[j]
+                    assert not nx.has_path(graph, a, b)
+                    assert not nx.has_path(graph, b, a)
+    for node in graph.nodes:
+        parents = list(graph.predecessors(node))
+        for i in range(len(parents)):
+            for j in range(i + 1, len(parents)):
+                a, b = parents[i], parents[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+
+
+def test_soup_sows_disjoint_bodies_that_metabolize():
+    graph, generations, info = _small_soup()
+    seeds = [set(body[0]) for body in generations]
+    for i in range(len(seeds)):
+        for j in range(i + 1, len(seeds)):
+            assert not (seeds[i] & seeds[j])  # birth clusters are disjoint
+    total = sum(len(caps) for logs in info["capture_logs"] for caps in logs)
+    assert total > 0
+
+
+def test_soup_death_bookkeeping_is_consistent():
+    graph, generations, info = _small_soup()
+    for i, body in enumerate(generations):
+        if info["alive"][i]:
+            assert info["death_generations"][i] is None
+            assert len(body) == 26  # n_generations + 1
+            assert len(info["capture_logs"][i]) == 25
+        else:
+            death = info["death_generations"][i]
+            assert death is not None and 0 <= death < 25
+            # the braid stops being computed at death
+            assert len(body) == death + 2  # gen 0 + advances up to and incl. death gen
+            assert len(info["capture_logs"][i]) == death + 1
+    marks = info["id_watermarks"]
+    assert np.all(np.diff(marks) > 0)
 
 
 def test_triangle_angle_on_handbuilt_equilateral_triangle():
