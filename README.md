@@ -242,6 +242,7 @@ growth-exponent measurement, so the regimes can be compared directly:
 ## Repository structure
 
 ```
+SYNTHESE.md                   # Full narrative history (FR): every experiment, success, failure, U-turn
 sim/                          # Generators and measurement code
   graph_generators.py
 tests/                        # Pytest unit tests

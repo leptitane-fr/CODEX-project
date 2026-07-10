@@ -36,6 +36,7 @@ explicitly. Concretely:
 ## Layout
 
 ```
+SYNTHESE.md                 # full narrative history of the project (FR), first experiment to last
 sim/graph_generators.py     # causal graph generators + growth-exponent measurement
 tests/test_graph_generators.py
 math/causal_set_dimension.md   # provenance note for the tau^dim scaling law used
