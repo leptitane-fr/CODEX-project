@@ -1224,6 +1224,18 @@ def generate_three_motif_graph(
       never reverses, so the circulation is topologically robust. This tests
       whether an internal structural asymmetry couples to the flux as an
       inertia carrier (ballistic drift) or not.
+    - `test_mode="front"`: the self-collimating accretion front (the Markovian
+      "QR code of movement" candidate). C's displacement state is encoded
+      entirely in *present* graph structure: the external in-edges of the
+      current membrane (the prey captured to build it -- edges prey -> member
+      that exist now; no cache, no history, no reading of N-2). All W capture
+      walks of the next generation start from that shared pool instead of
+      from the membrane (fallback to the membrane when the pool is empty). A
+      clustered intake locus should then reproduce itself one step further
+      out each generation -- a travelling front. Binary rule, no knob.
+      Measured outcome (see math/event_driven_shadow_analysis.md): the
+      feedback *does* self-perpetuate, but its fixed point is not motion --
+      it is capture-lock onto the nearest reference body (5/5 seeds).
 
     Only the *retention* of already-valid, already-antichain-checked candidates
     is constrained (and, for the correlated / chiral modes, which previous
@@ -1252,9 +1264,10 @@ def generate_three_motif_graph(
         raise ValueError("motif_width must be >= 2")
     if chirality not in (1, -1):
         raise ValueError("chirality must be +1 or -1")
-    if test_mode not in ("plain", "correlated", "correlated_seed", "forced", "chiral"):
+    if test_mode not in ("plain", "correlated", "correlated_seed", "forced", "chiral", "front"):
         raise ValueError(
-            "test_mode must be 'plain', 'correlated', 'correlated_seed', 'forced', or 'chiral'"
+            "test_mode must be 'plain', 'correlated', 'correlated_seed', 'forced', "
+            "'chiral', or 'front'"
         )
 
     rng = np.random.default_rng(seed)
@@ -1350,6 +1363,7 @@ def generate_three_motif_graph(
 
     generations = {"A": [cluster_a], "B": [cluster_b], "C": [cluster_c]}
     headings = {node: None for node in cluster_c}  # per-strand last intake (C only)
+    tube_c = set(cluster_c)  # C's worldtube membership (identity bookkeeping)
     id_watermarks = np.zeros(n_generations, dtype=np.int64)
     capture_counts_c = np.zeros(n_generations, dtype=int)
 
@@ -1372,12 +1386,14 @@ def generate_three_motif_graph(
                 queue.append(v)
         return radius + 1
 
-    def advance_motif(key, correlated, tangential, chiral):
+    def advance_motif(key, correlated, tangential, chiral, front=False):
         """One generation for motif `key`. `correlated` starts each strand's
         walk from its inherited heading; `tangential` biases retained captures
         toward the B-side of the A--B baseline (the prepared / forced kick);
         `chiral` (0 = off, else the handedness in {+1, -1}) fixes the internal
-        braid to a rotating consecutive block. Returns the number of captures."""
+        braid to a rotating consecutive block; `front` starts every walk from
+        the membrane's external in-edges (its present prey pool). Returns the
+        number of captures."""
         nonlocal next_id, headings
         previous = generations[key][-1]
         previous_set = set(previous)
@@ -1389,6 +1405,14 @@ def generate_three_motif_graph(
         if tangential:
             membrane_a = generations["A"][-1]
             membrane_b = generations["B"][-1]
+        front_pool = []
+        if front:
+            # The "QR code of movement": the membrane's external in-edges (the
+            # prey that built this generation) are present graph structure --
+            # readable now, no history. All strands share this one pool.
+            front_pool = [
+                p for m in previous for p in graph.predecessors(m) if p not in tube_c
+            ]
         for strand in range(motif_width):
             if next_id >= max_nodes:
                 raise RuntimeError(f"max_nodes ({max_nodes}) reached")
@@ -1400,7 +1424,9 @@ def generate_three_motif_graph(
                 chosen = [previous[(strand + j * chiral) % width] for j in range(internal_parents)]
                 start = previous[(strand + chiral) % width]
             else:
-                if correlated and headings.get(anchor) is not None and headings[anchor] in graph:
+                if front and front_pool:
+                    start = front_pool[rng.integers(0, len(front_pool))]
+                elif correlated and headings.get(anchor) is not None and headings[anchor] in graph:
                     start = headings[anchor]
                 else:
                     start = previous[rng.integers(0, width)]
@@ -1464,6 +1490,7 @@ def generate_three_motif_graph(
             )
         if key == "C":
             headings = new_headings
+            tube_c.update(new_generation)
         return captures
 
     for g in range(n_generations):
@@ -1474,7 +1501,9 @@ def generate_three_motif_graph(
             test_mode == "correlated_seed" and g < seed_ticks
         )
         chiral_c = chirality if test_mode == "chiral" else 0
-        capture_counts_c[g] = advance_motif("C", correlated_c, tangential_c, chiral_c)
+        capture_counts_c[g] = advance_motif(
+            "C", correlated_c, tangential_c, chiral_c, front=(test_mode == "front")
+        )
 
         for _ in range(background_ratio):
             if not heap or next_id >= max_nodes:

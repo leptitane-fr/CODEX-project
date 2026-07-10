@@ -577,7 +577,7 @@ def test_three_motif_rejects_invalid_parameters():
 
 
 @pytest.mark.parametrize(
-    "mode", ["plain", "correlated", "correlated_seed", "forced", "chiral"]
+    "mode", ["plain", "correlated", "correlated_seed", "forced", "chiral", "front"]
 )
 def test_three_motif_preserves_invariants_under_all_modes(mode):
     graph, generations, info = _small_three_motif_graph(mode=mode)
@@ -619,7 +619,9 @@ def test_three_motif_records_increasing_id_watermarks():
     assert np.all(np.diff(marks) > 0)
 
 
-@pytest.mark.parametrize("mode", ["correlated", "correlated_seed", "forced", "chiral"])
+@pytest.mark.parametrize(
+    "mode", ["correlated", "correlated_seed", "forced", "chiral", "front"]
+)
 def test_three_motif_nonplain_modes_are_not_no_ops(mode):
     # Each non-plain test_mode must actually change C's evolution vs the plain
     # control at the same seed (else the "test body" observable is inert).
@@ -646,6 +648,17 @@ def test_three_motif_chiral_braid_has_strict_handedness():
                 internal = set(graph.predecessors(node)) & prev_set
                 expected = {prev[strand % width], prev[(strand + hand) % width]}
                 assert internal == expected
+
+
+def test_three_motif_front_mode_metabolizes_from_its_prey_pool():
+    # The accretion-front rule must not starve: walks starting from the
+    # membrane's external in-edges (instead of the membrane itself) still have
+    # to find antichain-valid captures generation after generation.
+    _, generations, info = _small_three_motif_graph(mode="front")
+    assert info["capture_counts_c"].sum() > 0
+    # The worldtube itself stays well-formed: constant width, no duplicates.
+    all_c = [n for gen in generations["C"] for n in gen]
+    assert len(all_c) == len(set(all_c))
 
 
 def test_three_motif_opposite_chiralities_diverge():

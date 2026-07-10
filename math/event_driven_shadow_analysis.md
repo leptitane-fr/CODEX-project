@@ -1320,3 +1320,138 @@ ballistic `(chirality, walk_hops)` triple would be meaningless (TEI-3.x failure
 mode). The standing conclusion is unchanged and reinforced: emergent inertia
 would require an ontological addition that gives the substrate a conserved
 *rate*; a conserved *topology*, which this substrate does support, is not it.
+
+## The Markovian "QR code of movement" (option A: the self-collimating accretion front)
+
+### Reframing under the strict-Markov laws
+
+Three laws were fixed before this attempt: (1) the graph has no memory -- the
+present N contains the entirety of the instructions generating N+1 (the "QR
+code"); (2) constant motion does not invoke inertia -- it is the perpetuation
+of a state, not a change of state, so no "resistance" is involved; (3) a
+movement state must therefore be encoded in the present configuration
+(edges, coupling, local charge), such that *reading* it to generate N+1
+produces a relational shift while reproducing the encoding itself.
+
+Formally: a movement state is a configuration sigma with **Phi(sigma) =
+T(sigma)** -- a translation eigenstate of the one-step generation map Phi. The
+prior nulls triangulate what such a sigma needs: `chiral` proved a structure
+can be a fixed point of the map (the winding survives forever) but its
+asymmetry lived in internal strand indexing the flux cannot read; `correlated`
+had an external direction but stored it in a per-strand cached pointer that
+ages and dies (not topology); `forced` displaced ballistically but its
+direction came from an external field (distance to B), so it was not a
+self-contained state. Needed: self-perpetuating + externally readable +
+self-contained, simultaneously.
+
+Three candidate encodings were analyzed; one was rejected on paper and two
+retained (A first, C reserve). **Option B (interface charge dipole)** --
+rejected before construction: the conservation law already writes a charge
+trail behind a moving body, but the ontology's only two readings of charge
+have the wrong sign for propulsion: blind routing ignores it (neutral) and
+refractive routing *climbs* it (p proportional to 1+charge), i.e. is attracted
+back toward the trail -- an anchor, exactly the stationary accretion belt
+already measured. A charge-*avoiding* walk would propel, but would contradict
+Canal 1 (refraction-attraction IS the model's gravity). Not built. **Option C
+(strict antichain exclusion)** -- reserve, not yet built: candidate prey must
+be independent of the *whole* previous membrane rather than the 2 internal
+parents (binary rule); its known weakness is that closing the rear cone does
+not select a forward one (under refraction the own-wake fraction is already
+0-7% and motion is still diffusive).
+
+### Option A: the encoding, the rule
+
+The displacement state is the membrane's **external in-edges**: the prey
+nodes captured to build the current generation, connected to it by
+prey -> member edges that exist *now* in the graph. Pure present structure --
+no cache, no history, no reading of N-2. Rule (`test_mode="front"`): all W
+capture walks of generation N+1 start from that shared pool, instead of from
+the membrane (fallback to the membrane when the pool is empty). Binary
+change, no continuous knob. Self-perpetuation hypothesis: a clustered intake
+locus reproduces itself one step further out each generation -- a travelling
+front satisfying Phi(sigma) = T(sigma).
+
+Three signatures were pre-registered on the unchanged angle instrument:
+success -> ballistic (exp ~1, `forced` = 1.21); dispersal -> diffusive (~0.5,
+`plain` = 0.57); **anchoring** (the locus collapses onto a persistent
+attractor and stays) -> frozen angle, exp -> 0.
+
+### Metabolic gate and study
+
+Gate passed: capture 99-100% (the front feeds *better* than the membrane --
+starting the walk on fresh prey samples fresh flux), pool size stable ~4,
+DAG + antichains + parent independence all clean (0 violations).
+
+5-seed x 900-generation study (protocol unchanged). The per-seed exponents
+(-0.23, 0.42, 1.43, 0.14, -0.04) are individually meaningless because the
+angle trajectories are **quantized**: long plateaus at exactly 90.0, 119.9,
+60.0, 0.0 degrees with wild jumps between them (S = 0.26-0.87 rad, versus
+0.002-0.06 for every previous mode). Quantized angles at 60/90/120 degrees
+are the law of cosines on *tiny integer* triangles (3-4-5, 3-5-7): the
+triangle had collapsed. Direct measurement of the sides found the cause, and
+it is the pre-registered anchoring signature in a variant not anticipated:
+
+| seed | late captures from A's tube | from B's tube | d(C, locked body) at g=580 | d(C, other body) |
+|---|---|---|---|---|
+| 1 | 94% | 0% | 2 | 528 |
+| 2 | 95% | 0% | 1 | 514 |
+| 3 | 0% | 97% | 2 | 572 |
+| 4 | 95% | 0% | 1 | 585 |
+| 5 | 95% | 0% | 3 | 531 |
+
+**Capture-lock, 5/5 seeds.** Within ~100 generations C's front pool becomes
+contaminated with a reference body's members; the positive feedback then does
+exactly what it was designed to do -- reproduce the intake locus -- but its
+fixed point is *attachment*: C rides its host at hop distance 1-3
+indefinitely (measured to 580+ generations), eating 94-97% of its captures
+from the host's living membrane, at 99-100% metabolism, while the third body
+recedes over the horizon. Which body gets locked is a proximity race at birth
+(A in 4 seeds, B in 1). A module-scale reproduction also exhibited a second
+sub-regime: a lock sitting ~39 hops *behind* the host's living membrane,
+gnawing the fossil trail -- the anchor is the worldtube *as persistent
+structure* (fossil past included), not specifically its living edge.
+
+### Reading -- the QR code works; what it encodes is binding, not motion
+
+The Markovian encoding is *vindicated mechanically*: the in-edge pool is a
+genuine self-perpetuating present-state (the feedback holds without decay for
+800+ generations -- compare `correlated`, whose cached pointer died in a few
+steps). Phi(sigma) = T(sigma) is satisfied. But the translation T it realizes
+is "co-move with the nearest body", not "move through the flux". The reason
+is structural and belongs to the ontology itself: **the flux is perishable**
+(TEI's own axiom). A background prey fires, retires, dilutes -- it cannot be
+an intake locus twice. The only *renewable* prey source at a stable
+relational position is another worldtube, regenerated every generation by its
+own advance (or its permanent fossil trail). So the only fixed points of a
+self-collimating intake map are attachments to persistent structure: in a
+perishable flux, a self-perpetuating displacement state cannot point at
+*space* -- it points at *matter*. The QR code of movement, run forward,
+compiles into gravitational capture.
+
+Worth recording explicitly: this is the project's **first stable two-body
+bound state** -- the two-body sector's verdict was "silence or radial merger,
+never a stable separation", and this is neither: C remains a distinct,
+well-formed closed motif (own antichain generations, own braid, 99-100%
+capture) permanently co-located at distance 1-3 with its host. A contact
+binary, mechanically a parasite/satellite: it metabolizes the host's
+membrane; the host's dynamics are indifferent (its advance does not depend on
+the heap; only its charge grows). "Space between bodies" is still absent --
+the binding is at contact range, not at a stationary nonzero separation.
+
+### Verdict
+
+Negative for movement, by anchoring (the third pre-registered signature):
+the accretion front does not travel through open flux; it locks onto the
+nearest worldtube, 5/5 seeds, and the angle instrument shows frozen quantized
+plateaus rather than ballistic drift. Per discipline: the rule was binary (no
+knob was available to tune), the anchoring failure mode was named in advance,
+and the lock is reported as the substantive finding rather than patched away.
+Do NOT rescue this by exempting other bodies' members from the front pool
+("don't eat bodies") -- that is a new ad-hoc law whose only role would be to
+steer the mechanism away from its natural attractor (TEI-3.x failure mode),
+and the attractor IS the result: it says self-perpetuating intake states in a
+perishable flux are bound states. The remaining untested encoding from the
+option analysis is C (strict whole-membrane antichain exclusion), which asks
+a different question -- whether the flux's geometry can carry a forward
+direction at all -- and whose null would localize the missing ingredient in
+the substrate's geometry rather than the motif's structure.

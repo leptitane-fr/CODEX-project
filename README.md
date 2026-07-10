@@ -148,7 +148,20 @@ growth-exponent measurement, so the regimes can be compared directly:
   handednesses** (0.49 and 0.64), with no mirror-antisymmetric drift: the
   substrate can carry a conserved topological charge but does not convert it
   into a conserved rate of motion — a spin is part of *what a body is*, not
-  *how it moves*. See `math/event_driven_shadow_analysis.md` for the full arc.
+  *how it moves*. A strict-Markov reframing (movement as a "QR code": a
+  present structure whose reading displaces and reproduces it, Φ(σ)=T(σ))
+  then produced `test_mode="front"` — the **self-collimating accretion
+  front**: all capture walks start from the membrane's external in-edges (its
+  present prey pool). The encoding *works* — the feedback self-perpetuates
+  for 800+ generations — but its fixed point is **capture-lock, 5/5 seeds**:
+  C attaches to the nearest reference body and rides it at hop distance 1-3
+  forever, eating 94-97% of its captures from the host's membrane. In a
+  perishable flux the only renewable intake locus is another worldtube, so a
+  self-perpetuating displacement state points at *matter*, not *space*: the
+  QR code of movement compiles into gravitational capture — incidentally the
+  project's **first stable two-body bound state** (neither silence nor
+  merger), though at contact range only. See
+  `math/event_driven_shadow_analysis.md` for the full arc.
 
 ## Reproducibility
 

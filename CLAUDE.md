@@ -313,6 +313,41 @@ meaningless (TEI-3.x failure mode). Emergent inertia still needs an ontological
 conserved *rate*; a conserved *topology*, which this substrate supports, is not
 it.
 
+The framing then shifted (three strict-Markov laws fixed in advance): no
+memory — the present N is the complete instruction set ("QR code") for N+1;
+constant motion is perpetuation of a state, not a change resisted by inertia;
+so a movement state must be encoded in present structure whose *reading*
+displaces it while reproducing it (formally, a translation eigenstate
+Φ(σ)=T(σ) of the one-step map). Three encodings were analyzed: a charge
+dipole (rejected on paper: both existing readings of charge have the
+anti-propulsive sign — blind ignores it, refraction *climbs* it back toward
+the trail, and flipping that would contradict Canal-1 gravity), strict
+whole-membrane antichain exclusion (reserve, not yet built), and the
+**self-collimating accretion front** (`test_mode="front"`, built): the QR code
+is the membrane's external in-edges (the prey that built the present
+generation — pure present edge structure), and all W capture walks of N+1
+start from that shared pool. Binary rule, no knob; metabolic gate passed
+(capture 99-100%, 0 violations). 5-seed × 900-generation verdict (same file):
+**capture-lock, 5/5 seeds** — the feedback self-perpetuates flawlessly (the
+Markovian encoding *works*, unlike the cached pointer of `correlated`), but
+its fixed point is attachment, not motion: within ~100 generations C locks
+onto the nearest reference body and rides at hop distance 1-3 for 580+
+generations, eating 94-97% of its captures from the host's living membrane
+(one module run showed the variant: squatting the host's fossil trail 39 hops
+behind). The angle instrument shows the pre-registered *anchoring* signature
+(frozen quantized plateaus at 60/90/120° — tiny integer triangles), not
+ballistic drift. Structural reading: the flux is perishable (TEI's own
+axiom), so the only renewable intake locus is another worldtube — in this
+substrate a self-perpetuating displacement state cannot point at *space*,
+only at *matter*: the QR code of movement compiles into gravitational
+capture. Silver lining recorded: this is the project's **first stable
+two-body bound state** (neither silence nor merger — a contact binary with
+C's identity intact), though still at contact range, so "space between
+bodies" remains absent. Do not rescue the front by exempting other bodies'
+members from the pool ("don't eat bodies" is a new ad-hoc law steering the
+mechanism away from its natural attractor — TEI-3.x failure mode); the
+attractor is the finding.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow
