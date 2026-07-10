@@ -1118,3 +1118,117 @@ engineered around, and the negative inertia result is reported as the
 substantive finding. Making orbits would require an ontological addition
 that gives the substrate a conserved rate -- not an initial condition, and
 not a tuning of the existing laws.
+
+## Three bodies: deploying the transverse dimension, and the inertia verdict in the correct frame
+
+### The frame error in the two-body test, and its fix
+
+The two-body inertia conclusion above rested on a hidden geometric mistake.
+With only *two* bodies there is exactly **one** distance between them -- a
+single scalar, i.e. a strictly 1-dimensional relation (a line). A
+"tangential" or "transverse" axis is, by construction, orthogonal to that
+line, and a line has no orthogonal direction *internal to the system*: there
+is literally nothing in a two-body universe for a lateral coordinate to be
+measured against. So the two-body finding "T -> 0, no persistent tangential
+drift" was not a null result about inertia -- it was measuring a coordinate
+that could not exist regardless of the physics. The proper-motion scalar
+`T = sqrt(S^2 - R^2)` was a heuristic proxy for a missing axis, not the axis
+itself.
+
+The transverse coordinate first *exists* with **three** bodies. Two reference
+bodies A and B fix a baseline; the third body C then has a genuine angular
+position off that baseline, given exactly (no Euclidean analogy) by the graph
+law of cosines on the three pairwise hop distances:
+
+    cos(angle at A) = (d_AB^2 + d_AC^2 - d_BC^2) / (2 * d_AB * d_AC)
+
+This angle is **scale-invariant**: if all three bodies recede together (the
+universe expands), every side scales by the same factor and the angle is
+unchanged. So the angle isolates C's lateral motion from the common recession
+that dominated -- and confounded -- every two-body observable. `triangle_angle`
+computes it in the *past* metric (`_hops_at_time` at the tick's id watermark),
+so a shortcut created later cannot leak backward and forge a distance.
+
+### Apparatus (`generate_three_motif_graph`)
+
+A and B are ordinary closed braided motifs (identical physics to
+`generate_braided_motif_graph`: braiding, consumption, radiation, refractive
+routing), advanced with the plain rule -- the inertial reference frame. C is
+the **test body**, advanced with a `test_mode`:
+
+- `plain`: C is an ordinary motif -- the null.
+- `correlated`: the A(+)B fusion braid -- each strand starts its capture walk
+  from that strand's *previous* intake node (an inherited heading = wake
+  dipole), so any lateral disposition is carried forward by the metabolism
+  itself. No burn, no partner reference.
+- `correlated_seed`: `correlated` plus a `seed_ticks`-generation burn that
+  biases which valid captures C keeps toward the B-side of the baseline -- a
+  prepared tangential kick, after which the partners are never referenced.
+  This is the physical "angular momentum" initial condition; whether its drift
+  *persists* past the burn is the inertia question.
+- `forced`: the burn's tangential bias applied at *every* generation -- a
+  non-physical **instrument control** that continuously advects C sideways.
+  It exists only to calibrate the ruler: it *must* move the angle ballistically,
+  or the observable is blind and every other result is meaningless.
+
+Only the *retention* of already-antichain-checked candidates is constrained
+(and, for correlated modes, the walk's *start*); the delay law, refractive
+routing, and the causal antichain rule are never touched. Birth places the
+three seeds as a near-equilateral triangle (each maximizes
+`min(d_A, d_B, d_AB) - |d_A - d_B|/2` over fresh warmup nodes) so the angle is
+non-degenerate from the start rather than a collapsed sliver.
+
+### Study
+
+Protocol: k=3, W=4, warmup=20000, hops=3, background_ratio=60, 900
+generations, 5 seeds. Observable: the angle-drift exponent -- log-log slope of
+mean `|angle(a) - angle(a - D)|` over lags D in {20,40,80,160}, anchored at
+generations {250,...,750}. **Ballistic (exp ~ 1)** = a persistent tangential
+rate (inertia); **diffusive (exp ~ 0.5)** = a random walk with no memory of
+its motion (no inertia).
+
+| test_mode | angle-drift exp | reading | birth angle | capture C |
+|---|---|---|---|---|
+| **forced** (instrument control) | **1.21 +- 0.19** | **ballistic** | ~33 deg | 73% |
+| plain (null) | 0.57 +- 0.82 | diffusive | ~105 deg | 67% |
+| correlated (A(+)B braid) | 0.59 +- 0.23 | diffusive | ~34 deg | 81% |
+| correlated_seed (A(+)B + kick) | 0.56 +- 0.33 | diffusive | ~10 deg | 89% |
+
+Metabolism is healthy in every mode (capture 67-89%, no starvation confound
+this time -- the tangential bias here only steers the walk start / retains a
+side, it does not reject a whole distance class as the two-body kick did).
+Birth angles span 34-105 deg: the triangle is genuinely non-degenerate, the
+transverse coordinate really is deployed.
+
+### Reading -- the frame works, and the null is now a real measurement
+
+**The instrument is sensitive.** The forced control moves the angle
+ballistically (exp 1.21): continuous lateral advection *does* register as a
+persistent angular drift in this observable. So a diffusive reading on the
+other modes is a real physical null, not a blind ruler. (This is exactly the
+pre-registered instrument check that the two-body T-scalar never had.)
+
+**Every physical mode is diffusive.** Plain, the A(+)B correlated braid, and
+the seeded A(+)B kick all land at exp ~ 0.56-0.59 -- indistinguishable from a
+random walk, and cleanly separated from the ballistic control at 1.21. The
+inherited-heading wake dipole does not carry a lateral rate forward; the
+prepared kick decays. C's angular position wanders, it does not *drift*.
+
+**Verdict: no tangential inertia, now confirmed in the frame where the
+coordinate exists.** The two-body sector could not test this (1D relation, no
+transverse axis); the three-body frame deploys the axis, the instrument
+control proves the axis is measurable, and the physical dynamics move along it
+diffusively. This upgrades the earlier two-body conclusion from
+"untestable/confounded" to a **positive null in the correct 2D frame**: the
+substrate conserves *what a body is* and *where it is*, but carries no
+dynamical variable holding a *rate* along the emergent transverse direction.
+The A(+)B fusion mechanism -- built specifically to encode velocity as a
+flux-sustained internal disposition rather than an absolute configuration --
+does encode a *disposition* (it changes C's braid and its birth angle), but
+that disposition does not integrate into ballistic motion. Per discipline: no
+knob was tuned toward a target exponent, the instrument control was
+pre-registered as the falsifier of a blind-ruler artifact and passed, and the
+diffusive result is reported as the substantive finding. An orbit would still
+require an ontological addition giving the substrate a conserved rate; three
+bodies sharpen *where* that addition is missing (the transverse channel is
+real and measurable -- it is simply memoryless), they do not supply it.

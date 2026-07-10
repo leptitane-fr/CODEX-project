@@ -125,9 +125,23 @@ growth-exponent measurement, so the regimes can be compared directly:
   condition, `kick_ticks`/`kick_mode` on `generate_two_motif_graph`, laws
   untouched) then failed by ejection: the burn starves the body and the
   proper-motion decomposition shows **no tangential drift is injected and none
-  persists** — the substrate has no angular momentum because **it has no
-  inertia** (it conserves what a body is and where it is, but not how it
-  moves). See `math/event_driven_shadow_analysis.md` for the full arc.
+  persists**.
+- `generate_three_motif_graph` + `triangle_angle` — the inertia question in
+  the frame where it is actually well-posed. With only two bodies there is a
+  single distance (a 1D line), so a transverse axis cannot exist: the two-body
+  "no tangential drift" reading was measuring a coordinate that isn't there. A
+  transverse coordinate first exists with **three** bodies — A and B fix a
+  baseline, and C's angle off it (graph law of cosines on the three pairwise
+  hop distances, measured in the past metric) is a scale-invariant 2D position
+  from which common recession cancels. C's `test_mode` runs the A⊕B fusion
+  braid and a prepared tangential kick against a pre-registered `forced`
+  instrument control. Verdict (5 seeds × 900 generations): the forced control
+  moves the angle **ballistically** (drift exponent 1.21 — the observable is
+  sensitive), while every physical mode is **diffusive** (~0.56–0.59). So
+  **no tangential inertia**, now a positive null in the correct frame — the
+  substrate has no angular momentum because **it has no inertia** (it conserves
+  what a body is and where it is, but not how it moves). See
+  `math/event_driven_shadow_analysis.md` for the full arc.
 
 ## Reproducibility
 

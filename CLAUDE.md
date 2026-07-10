@@ -260,6 +260,38 @@ Do not tune kick_ticks/mode to seek a channel — an orbit would require an
 ontological addition giving the substrate a conserved rate, not an initial
 condition or a knob.
 
+That two-body inertia conclusion rested on a frame error, now corrected: with
+only two bodies there is a *single* distance (a 1D line), so a transverse axis
+cannot exist and the tangential scalar T was measuring a coordinate that isn't
+there — not a null about inertia. The transverse coordinate first exists with
+**three** bodies. `generate_three_motif_graph` + `triangle_angle` (same file,
+last section) build it: A, B are plain reference motifs fixing a baseline, C is
+the test body, and C's angle off the A-B baseline (graph law of cosines on the
+three pairwise hop distances, computed in the past metric via `_hops_at_time`)
+is a scale-invariant 2D transverse position — common recession cancels out of
+the angle. `test_mode ∈ {plain, correlated, correlated_seed, forced}`:
+`correlated` is the A⊕B fusion braid (inherited-heading wake dipole),
+`correlated_seed` adds a prepared tangential kick (burn window), and `forced`
+is a pre-registered **instrument control** that advects C sideways every
+generation — it must move the angle ballistically or the observable is blind.
+Only candidate *retention* / walk *start* is constrained; the delay law,
+routing, and antichain rule are untouched (so `plain` is the exact control).
+5-seed × 900-generation verdict (same file): forced = angle-drift exponent
+**1.21 (ballistic — instrument validated)**, while plain / correlated /
+correlated_seed all = **~0.56-0.59 (diffusive)**, cleanly separated, with
+healthy metabolism (capture 67-89%, no starvation confound) and non-degenerate
+birth triangles (angles 34-105°). So **no tangential inertia**, now a positive
+null in the frame where the coordinate genuinely exists: the substrate carries
+no variable holding a *rate* along the emergent transverse direction; the A⊕B
+mechanism encodes a lateral *disposition* (it changes C's braid and birth
+angle) but that disposition does not integrate into ballistic motion. Do not
+rescue this by searching `(test_mode, seed_ticks, walk_hops)` space for a
+ballistic exponent — the instrument control passing while every physical mode
+stays diffusive is exactly the evidence that such a find would be meaningless
+(TEI-3.x failure mode). An orbit still needs an ontological addition giving the
+substrate a conserved rate; three bodies show *where* it is missing (the
+transverse channel is real and measurable — it is simply memoryless).
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

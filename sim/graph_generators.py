@@ -77,6 +77,7 @@ instrumentation for exploring it, not a claimed solution to it.
 import argparse
 import bisect
 import heapq
+import math
 from collections import deque
 
 import networkx as nx
@@ -1162,6 +1163,339 @@ def first_contact_lag(graph, generations_from, generations_to, anchor, max_lag):
         if any(member in reachable for member in generations_to[anchor + lag]):
             return lag
     return None
+
+
+def generate_three_motif_graph(
+    n_generations,
+    k,
+    motif_width,
+    warmup_events=20000,
+    walk_hops=3,
+    background_ratio=60,
+    internal_parents=2,
+    test_mode="plain",
+    seed_ticks=100,
+    charge_biased_routing=True,
+    seed=None,
+    max_nodes=2_000_000,
+):
+    """Three-body inertia probe: does a transverse ("tangential") coordinate exist?
+
+    The two-body sector (`generate_two_motif_graph`) proved that with *two*
+    bodies there is only one distance -- a line, hence a strictly 1D relation
+    -- so a lateral/transverse axis literally cannot exist and "angular
+    momentum" cannot be tested there (that is why the kick test could only
+    ever produce silence or radial merger). A transverse coordinate needs a
+    *third* body: with A, B, C the two reference bodies A and B fix a baseline,
+    and C's angle off that baseline (by the graph law of cosines on the three
+    pairwise hop distances, `triangle_angle`) is a genuine 2D transverse
+    position that is scale-invariant -- common recession of all three cancels
+    out of the angle, so it isolates lateral motion from expansion.
+
+    A and B are ordinary closed motifs (identical physics to
+    `generate_braided_motif_graph`: braiding, consumption, radiation, optional
+    refractive routing) advanced with the plain rule. C is the *test body*,
+    advanced with a `test_mode` that probes whether the substrate carries a
+    conserved tangential rate (inertia):
+
+    - `test_mode="plain"`: C is an ordinary motif too -- the null.
+    - `test_mode="correlated"`: A⊕B braiding. Each strand starts its capture
+      walk from that strand's *previous* intake node (an inherited heading =
+      wake dipole), so a lateral disposition, once present, is carried forward
+      by the metabolism itself. No burn, no partner reference.
+    - `test_mode="correlated_seed"`: correlated braiding *plus* a burn window
+      (first `seed_ticks` generations) that biases which valid captures C
+      keeps toward the B-side of the A--B baseline -- a prepared tangential
+      "kick", after which the partners are never referenced again. This is the
+      physical initial condition whose *persistence* past the burn is the
+      emergent-inertia question.
+    - `test_mode="forced"`: the burn's tangential bias is applied at *every*
+      generation, not just the seed window -- a non-physical instrument
+      control that continuously advects C sideways. It must move the angle
+      ballistically; if it does not, the observable itself is blind. (It is
+      not a law, it is the ruler's calibration.)
+
+    Only the *retention* of already-valid, already-antichain-checked candidates
+    is constrained (and, for correlated modes, the walk's *start*); the delay
+    law, refractive routing, and the causal antichain rule are never touched.
+    So `test_mode="plain"` is the untouched three-motif control.
+
+    Birth: three fresh (charge-0) clusters chosen to form a roughly
+    equilateral triangle (each seed maximizes `min(dA, dB, dAB) - |dA - dB|/2`
+    over the fresh warmup nodes), so the transverse angle at birth is
+    non-degenerate rather than a collapsed sliver.
+
+    Returns `(graph, generations, info)` where `generations` is a dict
+    `{"A": [...], "B": [...], "C": [...]}` of per-generation membranes and
+    `info` carries `id_watermarks` (creation-order high-water mark per tick,
+    for past-metric reconstruction), `capture_counts_c` (C's metabolism per
+    generation), and `birth_sides` (the three birth distances dA, dB, dAB).
+    """
+    if internal_parents < 2:
+        raise ValueError("braiding requires internal_parents >= 2")
+    if k <= internal_parents:
+        raise ValueError("k must be > internal_parents (need at least one capture slot)")
+    if motif_width < 2:
+        raise ValueError("motif_width must be >= 2")
+    if test_mode not in ("plain", "correlated", "correlated_seed", "forced"):
+        raise ValueError(
+            "test_mode must be 'plain', 'correlated', 'correlated_seed', or 'forced'"
+        )
+
+    rng = np.random.default_rng(seed)
+    graph = nx.DiGraph()
+    n0 = k
+    graph.add_nodes_from(range(n0))
+    charge = [0] * n0
+    current_gen = [0] * n0
+    ancestors = [0] * n0
+    max_attempts = max(50, k * 20)
+
+    def delay(load):
+        return 1.0 + load
+
+    def new_slot():
+        charge.append(0)
+        current_gen.append(0)
+        ancestors.append(0)
+
+    heap = []
+    next_id = n0
+    for node in range(n0):
+        heapq.heappush(heap, (1.0, node, 0))
+    routing_charge = charge if charge_biased_routing else None
+    background_time = 0.0
+
+    def fire_background_event(t, trigger):
+        nonlocal next_id
+        chosen = _pick_independent_parents(
+            graph, trigger, k, rng, walk_hops, ancestors, max_attempts, charge=routing_charge
+        )
+        new_node = next_id
+        next_id += 1
+        graph.add_node(new_node)
+        new_slot()
+        new_ancestors = 0
+        for p in chosen:
+            graph.add_edge(p, new_node)
+            new_ancestors |= ancestors[p] | (1 << p)
+            charge[p] += 1
+            current_gen[p] += 1
+            heapq.heappush(heap, (t + delay(charge[p]), p, current_gen[p]))
+        ancestors[new_node] = new_ancestors
+        heapq.heappush(heap, (t + delay(0), new_node, current_gen[new_node]))
+
+    # --- Phase 1: warmup ---
+    t = 0.0
+    for _ in range(warmup_events):
+        if next_id >= max_nodes:
+            raise RuntimeError(f"max_nodes ({max_nodes}) reached during warmup")
+        t, trigger, gen = heapq.heappop(heap)
+        if gen != current_gen[trigger]:
+            continue
+        fire_background_event(t, trigger)
+    background_time = t
+    warm_n = next_id
+
+    # --- Phase 2: seed three near-equilateral clusters ---
+    fresh = [node for node in range(next_id) if charge[node] == 0]
+    if len(fresh) < 3 * motif_width:
+        raise RuntimeError("not enough fresh nodes after warmup to seed three motifs")
+
+    def warm_distances(src):
+        return _hops_at_time(graph, [src], warm_n)
+
+    seed_a = int(rng.choice(fresh))
+    dist_a = warm_distances(seed_a)
+    seed_b = max((f for f in fresh if f in dist_a and f != seed_a), key=lambda f: dist_a[f])
+    dist_b = warm_distances(seed_b)
+    baseline = dist_a.get(seed_b, 1)
+
+    def triangle_score(f):
+        if f not in dist_a or f not in dist_b:
+            return -1
+        da, db = dist_a[f], dist_b[f]
+        return min(da, db, baseline) - 0.5 * abs(da - db)
+
+    seed_c = max(
+        (f for f in fresh if f not in (seed_a, seed_b)), key=triangle_score
+    )
+    dist_c = warm_distances(seed_c)
+
+    def cluster(seed_node, dist, excluded):
+        others = sorted(
+            (f for f in fresh if f != seed_node and f in dist and f not in excluded),
+            key=lambda f: dist[f],
+        )
+        return [seed_node] + others[: motif_width - 1]
+
+    cluster_a = cluster(seed_a, dist_a, set())
+    cluster_b = cluster(seed_b, dist_b, set(cluster_a))
+    cluster_c = cluster(seed_c, dist_c, set(cluster_a) | set(cluster_b))
+
+    generations = {"A": [cluster_a], "B": [cluster_b], "C": [cluster_c]}
+    headings = {node: None for node in cluster_c}  # per-strand last intake (C only)
+    id_watermarks = np.zeros(n_generations, dtype=np.int64)
+    capture_counts_c = np.zeros(n_generations, dtype=int)
+
+    def bounded_hops(source, targets, radius):
+        """Undirected hop distance from `source` to the nearest `targets` node,
+        capped at `radius` (returns radius + 1 if none is within radius)."""
+        target_set = set(targets)
+        distances = {source: 0}
+        queue = deque([source])
+        while queue:
+            u = queue.popleft()
+            if distances[u] >= radius:
+                continue
+            for v in list(graph.predecessors(u)) + list(graph.successors(u)):
+                if v in distances:
+                    continue
+                distances[v] = distances[u] + 1
+                if v in target_set:
+                    return distances[v]
+                queue.append(v)
+        return radius + 1
+
+    def advance_motif(key, correlated, tangential):
+        """One generation for motif `key`. `correlated` starts each strand's
+        walk from its inherited heading; `tangential` biases retained captures
+        toward the B-side of the A--B baseline (the prepared / forced kick).
+        Returns the number of captures."""
+        nonlocal next_id, headings
+        previous = generations[key][-1]
+        previous_set = set(previous)
+        new_generation = []
+        new_generation_set = set()
+        new_headings = {}
+        captures = 0
+        if tangential:
+            membrane_a = generations["A"][-1]
+            membrane_b = generations["B"][-1]
+        for strand in range(motif_width):
+            if next_id >= max_nodes:
+                raise RuntimeError(f"max_nodes ({max_nodes}) reached")
+            anchor = previous[strand % len(previous)]
+            if correlated and headings.get(anchor) is not None and headings[anchor] in graph:
+                start = headings[anchor]
+            else:
+                start = previous[rng.integers(0, len(previous))]
+            picks = rng.choice(len(previous), size=internal_parents, replace=False)
+            chosen = [previous[i] for i in picks]
+            captured_nodes = []
+            attempts = 0
+            while len(captured_nodes) < k - internal_parents and attempts < max_attempts:
+                candidate = _local_walk_candidate(
+                    graph, start, rng, walk_hops, charge=routing_charge
+                )
+                attempts += 1
+                if (
+                    candidate in chosen
+                    or candidate in previous_set
+                    or candidate in new_generation_set
+                    or candidate in captured_nodes
+                ):
+                    continue
+                candidate_ancestors = ancestors[candidate]
+                if not all(
+                    not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
+                    for p in chosen
+                ):
+                    continue
+                if tangential:
+                    # Prefer intake nearer B than A -> swing C toward the B side
+                    # of the baseline (a lateral push). Skip an A-side candidate
+                    # once, but fall back rather than starve the metabolism.
+                    d_to_a = bounded_hops(candidate, membrane_a, walk_hops + 4)
+                    d_to_b = bounded_hops(candidate, membrane_b, walk_hops + 4)
+                    if d_to_b > d_to_a and attempts < max_attempts - 2 and not captured_nodes:
+                        continue
+                chosen.append(candidate)
+                captured_nodes.append(candidate)
+            new_node = next_id
+            next_id += 1
+            graph.add_node(new_node)
+            new_slot()
+            new_ancestors = 0
+            for p in chosen:
+                graph.add_edge(p, new_node)
+                new_ancestors |= ancestors[p] | (1 << p)
+                charge[p] += 1
+            ancestors[new_node] = new_ancestors
+            new_generation.append(new_node)
+            new_generation_set.add(new_node)
+            new_headings[new_node] = captured_nodes[0] if captured_nodes else headings.get(anchor)
+            captures += len(captured_nodes)
+            for captured in captured_nodes:
+                current_gen[captured] += 1
+                heapq.heappush(
+                    heap, (background_time + delay(charge[captured]), captured, current_gen[captured])
+                )
+        generations[key].append(new_generation)
+        # Radiation: the retired generation re-enters the flux (TEI 6bis.2).
+        for retired in previous:
+            current_gen[retired] += 1
+            heapq.heappush(
+                heap, (background_time + delay(charge[retired]), retired, current_gen[retired])
+            )
+        if key == "C":
+            headings = new_headings
+        return captures
+
+    for g in range(n_generations):
+        advance_motif("A", correlated=False, tangential=False)
+        advance_motif("B", correlated=False, tangential=False)
+        correlated_c = test_mode in ("correlated", "correlated_seed")
+        tangential_c = test_mode == "forced" or (
+            test_mode == "correlated_seed" and g < seed_ticks
+        )
+        capture_counts_c[g] = advance_motif("C", correlated_c, tangential_c)
+
+        for _ in range(background_ratio):
+            if not heap or next_id >= max_nodes:
+                break
+            t2, trigger, gen = heapq.heappop(heap)
+            if gen != current_gen[trigger]:
+                continue
+            background_time = t2
+            fire_background_event(t2, trigger)
+
+        id_watermarks[g] = next_id
+
+    info = {
+        "id_watermarks": id_watermarks,
+        "capture_counts_c": capture_counts_c,
+        "birth_sides": (dist_a.get(seed_b), dist_a.get(seed_c), dist_b.get(seed_c)),
+    }
+    return graph, generations, info
+
+
+def triangle_angle(graph, generations, watermarks, generation):
+    """Transverse angle of test body C off the A--B baseline (radians).
+
+    Uses the graph law of cosines on the three pairwise undirected hop
+    distances between the motif membranes, measured in the graph *as it
+    existed* at `watermarks[generation]` (past-metric reconstruction via id
+    order, see `_hops_at_time`). The angle is the one at vertex A in triangle
+    A-B-C, so common recession of all three bodies cancels and only C's
+    lateral position survives. Returns None if the three membranes are not
+    mutually reachable, or the triangle degenerates (a zero side at A).
+    """
+    watermark = int(watermarks[min(generation, len(watermarks) - 1)])
+
+    def side(key_1, key_2):
+        return _hops_at_time(
+            graph, generations[key_1][generation], watermark,
+            targets=generations[key_2][generation],
+        )
+
+    ab = side("A", "B")
+    ac = side("A", "C")
+    bc = side("B", "C")
+    if None in (ab, ac, bc) or ab == 0 or ac == 0:
+        return None
+    cos_a = (ab * ab + ac * ac - bc * bc) / (2 * ab * ac)
+    return math.acos(max(-1.0, min(1.0, cos_a)))
 
 
 def observer_growth_curve(graph, worldline):

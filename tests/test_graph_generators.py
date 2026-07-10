@@ -10,6 +10,7 @@ from sim.graph_generators import (
     generate_braided_motif_graph,
     generate_event_driven_shadow_graph,
     generate_random_dag,
+    generate_three_motif_graph,
     generate_two_motif_graph,
     generate_tei_shadow_graph,
     interval_width,
@@ -20,6 +21,7 @@ from sim.graph_generators import (
     reachable_within_hops,
     reachable_within_ticks,
     sprinkle_minkowski,
+    triangle_angle,
 )
 
 
@@ -550,3 +552,110 @@ def test_worldtube_drift_on_handbuilt_graph():
     assert worldtube_drift(graph, gens, gen=2, delta=2, watermark=3) == 2
     assert worldtube_drift(graph, gens, gen=1, delta=1, watermark=3) == 1
     assert worldtube_drift(graph, gens, gen=0, delta=1, watermark=3) is None
+
+
+def _small_three_motif_graph(mode="plain", seed=3):
+    return generate_three_motif_graph(
+        n_generations=40, k=3, motif_width=3, warmup_events=1500,
+        walk_hops=3, background_ratio=15, test_mode=mode, seed_ticks=15, seed=seed,
+    )
+
+
+def test_three_motif_rejects_invalid_parameters():
+    with pytest.raises(ValueError):  # motif_width < 2
+        generate_three_motif_graph(n_generations=5, k=3, motif_width=1, seed=0)
+    with pytest.raises(ValueError):  # k <= internal_parents => no capture slot
+        generate_three_motif_graph(n_generations=5, k=2, motif_width=3, seed=0)
+    with pytest.raises(ValueError):  # bad test_mode
+        generate_three_motif_graph(
+            n_generations=5, k=3, motif_width=3, test_mode="sideways", seed=0
+        )
+
+
+@pytest.mark.parametrize("mode", ["plain", "correlated", "correlated_seed", "forced"])
+def test_three_motif_preserves_invariants_under_all_modes(mode):
+    graph, generations, info = _small_three_motif_graph(mode=mode)
+    assert nx.is_directed_acyclic_graph(graph)
+    for key in ("A", "B", "C"):
+        assert len(generations[key]) == 41  # n_generations + 1
+        for generation in generations[key]:
+            assert len(generation) == 3
+            for i in range(3):
+                for j in range(i + 1, 3):
+                    a, b = generation[i], generation[j]
+                    assert not nx.has_path(graph, a, b)
+                    assert not nx.has_path(graph, b, a)
+    # Shadow rule: every node's parents are mutually causally independent.
+    for node in graph.nodes:
+        parents = list(graph.predecessors(node))
+        for i in range(len(parents)):
+            for j in range(i + 1, len(parents)):
+                a, b = parents[i], parents[j]
+                assert not nx.has_path(graph, a, b)
+                assert not nx.has_path(graph, b, a)
+
+
+def test_three_motif_births_a_nondegenerate_triangle_and_metabolizes():
+    _, _, info = _small_three_motif_graph(mode="plain")
+    da, db, ab = info["birth_sides"]
+    # Three genuinely separated bodies: no side collapsed to zero, so the
+    # transverse angle at birth is well defined (not a degenerate sliver).
+    assert da and db and ab and min(da, db, ab) >= 1
+    # k=3 => one capture slot per node; the test body must actually feed.
+    assert info["capture_counts_c"].sum() > 0
+    assert info["capture_counts_c"].max() <= 3  # motif_width * (k - internal_parents)
+
+
+def test_three_motif_records_increasing_id_watermarks():
+    _, graph_nodes, info = _small_three_motif_graph(mode="plain")
+    marks = info["id_watermarks"]
+    assert len(marks) == 40
+    assert np.all(np.diff(marks) > 0)
+
+
+@pytest.mark.parametrize("mode", ["correlated", "correlated_seed", "forced"])
+def test_three_motif_nonplain_modes_are_not_no_ops(mode):
+    # Each non-plain test_mode must actually change C's evolution vs the plain
+    # control at the same seed (else the "test body" observable is inert).
+    base = _small_three_motif_graph(mode="plain", seed=3)
+    variant = _small_three_motif_graph(mode=mode, seed=3)
+    assert set(base[0].edges()) != set(variant[0].edges())
+
+
+def test_three_motif_forced_mode_moves_the_transverse_angle():
+    # Instrument-sensitivity guard: the forced (continuous tangential
+    # advection) control must produce a non-trivial swing of the measured
+    # angle -- if the observable could not register even forced lateral
+    # motion, a diffusive null on the physical modes would be meaningless.
+    graph, generations, info = generate_three_motif_graph(
+        n_generations=120, k=3, motif_width=4, warmup_events=6000,
+        walk_hops=3, background_ratio=40, test_mode="forced", seed=1,
+    )
+    marks = info["id_watermarks"]
+    angles = [
+        triangle_angle(graph, generations, marks, g)
+        for g in range(10, 120, 10)
+    ]
+    angles = [a for a in angles if a is not None]
+    assert len(angles) >= 3
+    assert max(angles) - min(angles) > 0.05  # radians; the angle is not frozen
+
+
+def test_triangle_angle_on_handbuilt_equilateral_triangle():
+    # Three membranes A=[0], B=[1], C=[2], each pair joined by a length-2
+    # undirected path through a shared intermediate -> all sides equal 2, so
+    # the law of cosines gives the equilateral angle of 60 degrees at A.
+    graph = nx.DiGraph([(0, 3), (1, 3), (0, 4), (2, 4), (1, 5), (2, 5)])
+    generations = {"A": [[0]], "B": [[1]], "C": [[2]]}
+    watermarks = np.array([6])
+    angle = triangle_angle(graph, generations, watermarks, 0)
+    assert angle == pytest.approx(np.pi / 3, abs=1e-9)
+
+
+def test_triangle_angle_is_none_when_a_body_is_unreachable():
+    # C is isolated -> no A-C side -> angle undefined.
+    graph = nx.DiGraph([(0, 3), (1, 3)])
+    graph.add_node(2)
+    generations = {"A": [[0]], "B": [[1]], "C": [[2]]}
+    watermarks = np.array([6])
+    assert triangle_angle(graph, generations, watermarks, 0) is None
