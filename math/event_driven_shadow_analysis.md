@@ -1232,3 +1232,91 @@ diffusive result is reported as the substantive finding. An orbit would still
 require an ontological addition giving the substrate a conserved rate; three
 bodies sharpen *where* that addition is missing (the transverse channel is
 real and measurable -- it is simply memoryless), they do not supply it.
+
+## A topological spin as inertia carrier? (chiral test body)
+
+The three-body null said the substrate carries no *rate*. The natural next
+candidate is: give the test body an internal structural asymmetry that *is*
+topologically protected -- a spin -- and ask whether that protected asymmetry
+couples to the flux as an inertia carrier. Topology is the one thing that
+survives naturally in this graph (a closed motif persists; a rate does not),
+so if anything can behave like conserved angular momentum it should be a
+conserved *winding*, not a conserved velocity.
+
+### Mechanism (`test_mode="chiral"`, `chirality` in {+1, -1})
+
+C's braid is given a strict handedness. For strand `i` of each new generation,
+the `internal_parents` are the *consecutive block* of previous strands
+`[i, i+h, i+2h, ...] mod motif_width`, and the capture walk starts from
+`previous[(i+h) mod W]` -- so the intake heading circulates around the ring in
+one fixed direction `h = chirality`. The rotation never reverses: `h=+1` and
+`h=-1` are mirror images (opposite spin), and neither can be undone by a local
+relabelling that respects creation order, so the circulation is topologically
+robust. Crucially this is not a new free knob steered toward a target: the
+parents are still drawn entirely from the previous generation (itself an
+antichain, so the braid stays causally valid by construction), and `h` has
+exactly two mirror-symmetric values, neither preferred.
+
+### Metabolic check (the pre-required health gate)
+
+The twist must not starve the motif against the antichain rule. It does not --
+it *feeds better*: the rotating intake heading gives capture 86-91% (vs the
+plain motif's 67% at the same parameters), because circulating the walk start
+around the membrane samples fresh flux more evenly than a random restart.
+DAG-acyclicity and antichain generations hold exactly for both handednesses
+(0 violations), tested.
+
+### Study
+
+Same apparatus and instrument as the three-body inertia test (k=3, W=4,
+warmup=20000, hops=3, background_ratio=60, 900 generations, 5 seeds; angle-drift
+exponent of the scale-invariant law-of-cosines angle). Configs: `plain`
+(diffusive baseline), `chiral` h=+1, `chiral` h=-1, `forced` (ballistic
+instrument control).
+
+| config | angle-drift exp | reading | net drift | capture C |
+|---|---|---|---|---|
+| **forced** (instrument) | **1.21 +- 0.19** | **ballistic** | +14 deg | 73% |
+| plain (null) | 0.57 +- 0.82 | diffusive | -44 deg | 67% |
+| **chiral h=+1** | **0.49 +- 0.67** | **diffusive** | +1 deg | 91% |
+| **chiral h=-1** | **0.64 +- 0.70** | **diffusive** | -32 deg | 86% |
+
+### Reading -- the spin is real and conserved, but it is not inertia
+
+**Both handednesses are diffusive** (exp ~0.49, ~0.64), indistinguishable from
+the plain null (~0.57) and cleanly separated from the ballistic instrument
+control (1.21). The protected internal circulation does not couple to the flux
+as a persistent tangential rate: C's angular position wanders exactly as it
+does without the spin. **No handedness signal** survives either -- if the spin
+carried a directional drift, h=+1 and h=-1 should show opposite, comparable net
+drifts; instead the per-seed net drifts (+1 deg vs -32 deg) are dominated by
+seed-to-seed diffusion variance and do not mirror. (The law-of-cosines angle is
+unsigned, [0, pi], so it cannot resolve a left/right orientation directly; but
+a genuine ballistic spin would still have shown up as a raised *exponent*, and
+it did not.)
+
+**The distinction this sharpens.** The chiral motif *does* possess a conserved
+topological quantity -- the winding is robust, and it even changes the body's
+metabolism (91% vs 67%). So the substrate can carry and protect a topological
+*charge*. What it cannot do is convert that protected charge into a conserved
+*rate of motion*: a spin here is a property of *what the body is* (its internal
+configuration), exactly like closure, not a property of *how it moves*.
+Angular momentum in classical mechanics is precisely the marriage of the two
+-- an internal circulation that *is* a rate. This substrate keeps them
+divorced: it has conserved windings and it has (memoryless) transverse
+position, but nothing makes a winding drive a position.
+
+### Verdict
+
+Negative, and it closes the "topology as inertia" avenue at this scale: a
+strict-handedness protected spin does not act as an inertia carrier -- the
+transverse motion stays diffusive for both chiralities, with no ballistic
+component and no mirror-antisymmetric drift. Per discipline: the metabolic
+health gate was checked first and passed (no starvation confound -- the spin in
+fact *improves* capture), `h` has only its two mirror values (no knob was tuned
+toward a target exponent), and the ballistic instrument control passing while
+both physical chiralities stay diffusive is the evidence that a search for a
+ballistic `(chirality, walk_hops)` triple would be meaningless (TEI-3.x failure
+mode). The standing conclusion is unchanged and reinforced: emergent inertia
+would require an ontological addition that gives the substrate a conserved
+*rate*; a conserved *topology*, which this substrate does support, is not it.

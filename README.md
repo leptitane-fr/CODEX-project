@@ -140,8 +140,15 @@ growth-exponent measurement, so the regimes can be compared directly:
   sensitive), while every physical mode is **diffusive** (~0.56–0.59). So
   **no tangential inertia**, now a positive null in the correct frame — the
   substrate has no angular momentum because **it has no inertia** (it conserves
-  what a body is and where it is, but not how it moves). See
-  `math/event_driven_shadow_analysis.md` for the full arc.
+  what a body is and where it is, but not how it moves). A **topological spin**
+  was then tried as the inertia carrier (`test_mode="chiral"`,
+  `chirality=±1`: a strict-handedness braid whose intake heading circulates one
+  fixed direction — topologically robust, no free knob). It *improves*
+  metabolism (capture 86–91% vs 67%) but stays **diffusive for both
+  handednesses** (0.49 and 0.64), with no mirror-antisymmetric drift: the
+  substrate can carry a conserved topological charge but does not convert it
+  into a conserved rate of motion — a spin is part of *what a body is*, not
+  *how it moves*. See `math/event_driven_shadow_analysis.md` for the full arc.
 
 ## Reproducibility
 

@@ -292,6 +292,27 @@ stays diffusive is exactly the evidence that such a find would be meaningless
 substrate a conserved rate; three bodies show *where* it is missing (the
 transverse channel is real and measurable — it is simply memoryless).
 
+A "topological spin" was then tried as the inertia carrier, since topology is
+the one thing this graph conserves naturally: `test_mode="chiral"` (parameter
+`chirality ∈ {+1,-1}`) gives C's braid a strict handedness — strand `i` parents
+the consecutive block `[i, i+h, …]` mod W and starts its walk from
+`previous[(i+h)%W]`, so the intake heading *circulates* one fixed direction
+(mirror-symmetric `h`, topologically robust, no free knob; parents still drawn
+from the previous antichain so the braid stays valid). Metabolic gate checked
+first and passed — the twist *improves* capture (86-91% vs plain 67%), 0
+antichain violations. 5-seed × 900-generation verdict (same file): **both
+handednesses are diffusive** (h=+1: 0.49, h=−1: 0.64) — indistinguishable from
+plain (0.57), cleanly separated from the ballistic `forced` control (1.21) —
+and no mirror-antisymmetric net drift. So **a protected spin is not inertia**:
+the substrate *can* carry a conserved topological charge (the winding is robust
+and alters metabolism) but does not convert it into a conserved *rate*; a spin
+here is part of *what the body is*, not *how it moves*. Do not search
+`(chirality, walk_hops)` for a ballistic triple — the instrument control passing
+while both chiralities stay diffusive is exactly why such a find would be
+meaningless (TEI-3.x failure mode). Emergent inertia still needs an ontological
+conserved *rate*; a conserved *topology*, which this substrate supports, is not
+it.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

@@ -570,9 +570,15 @@ def test_three_motif_rejects_invalid_parameters():
         generate_three_motif_graph(
             n_generations=5, k=3, motif_width=3, test_mode="sideways", seed=0
         )
+    with pytest.raises(ValueError):  # chirality must be +1 or -1
+        generate_three_motif_graph(
+            n_generations=5, k=3, motif_width=3, test_mode="chiral", chirality=0, seed=0
+        )
 
 
-@pytest.mark.parametrize("mode", ["plain", "correlated", "correlated_seed", "forced"])
+@pytest.mark.parametrize(
+    "mode", ["plain", "correlated", "correlated_seed", "forced", "chiral"]
+)
 def test_three_motif_preserves_invariants_under_all_modes(mode):
     graph, generations, info = _small_three_motif_graph(mode=mode)
     assert nx.is_directed_acyclic_graph(graph)
@@ -613,13 +619,45 @@ def test_three_motif_records_increasing_id_watermarks():
     assert np.all(np.diff(marks) > 0)
 
 
-@pytest.mark.parametrize("mode", ["correlated", "correlated_seed", "forced"])
+@pytest.mark.parametrize("mode", ["correlated", "correlated_seed", "forced", "chiral"])
 def test_three_motif_nonplain_modes_are_not_no_ops(mode):
     # Each non-plain test_mode must actually change C's evolution vs the plain
     # control at the same seed (else the "test body" observable is inert).
     base = _small_three_motif_graph(mode="plain", seed=3)
     variant = _small_three_motif_graph(mode=mode, seed=3)
     assert set(base[0].edges()) != set(variant[0].edges())
+
+
+def test_three_motif_chiral_braid_has_strict_handedness():
+    # The chiral test body's internal braid must be exactly the rotating
+    # consecutive block: strand i's previous-generation parents are
+    # {prev[i], prev[(i + h) % W]} for handedness h -- and +1/-1 differ.
+    for hand in (1, -1):
+        graph, generations, _ = generate_three_motif_graph(
+            n_generations=20, k=3, motif_width=4, warmup_events=1500,
+            walk_hops=3, background_ratio=15, test_mode="chiral",
+            chirality=hand, seed=4,
+        )
+        c_gens = generations["C"]
+        width = 4
+        for prev, current in zip(c_gens, c_gens[1:]):
+            prev_set = set(prev)
+            for strand, node in enumerate(current):
+                internal = set(graph.predecessors(node)) & prev_set
+                expected = {prev[strand % width], prev[(strand + hand) % width]}
+                assert internal == expected
+
+
+def test_three_motif_opposite_chiralities_diverge():
+    # +1 and -1 handedness are mirror images -> different graphs at same seed.
+    right = _small_three_motif_graph(mode="chiral", seed=3)
+    # same helper but flip handedness
+    left = generate_three_motif_graph(
+        n_generations=40, k=3, motif_width=3, warmup_events=1500,
+        walk_hops=3, background_ratio=15, test_mode="chiral",
+        chirality=-1, seed=3,
+    )
+    assert set(right[0].edges()) != set(left[0].edges())
 
 
 def test_three_motif_forced_mode_moves_the_transverse_angle():

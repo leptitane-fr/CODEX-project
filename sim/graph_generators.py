@@ -1175,6 +1175,7 @@ def generate_three_motif_graph(
     internal_parents=2,
     test_mode="plain",
     seed_ticks=100,
+    chirality=1,
     charge_biased_routing=True,
     seed=None,
     max_nodes=2_000_000,
@@ -1214,11 +1215,23 @@ def generate_three_motif_graph(
       control that continuously advects C sideways. It must move the angle
       ballistically; if it does not, the observable itself is blind. (It is
       not a law, it is the ruler's calibration.)
+    - `test_mode="chiral"`: a protected topological *spin*. C's braid is given
+      a strict handedness -- strand `i` takes its `internal_parents` from the
+      consecutive block of previous strands `[i, i+h, i+2h, ...]` mod
+      `motif_width`, and starts its capture walk from `previous[(i+h) % W]`, so
+      the intake heading *circulates* around the ring in one fixed direction
+      `h = chirality` (in {+1, -1}; +1 and -1 are mirror images). The rotation
+      never reverses, so the circulation is topologically robust. This tests
+      whether an internal structural asymmetry couples to the flux as an
+      inertia carrier (ballistic drift) or not.
 
     Only the *retention* of already-valid, already-antichain-checked candidates
-    is constrained (and, for correlated modes, the walk's *start*); the delay
-    law, refractive routing, and the causal antichain rule are never touched.
-    So `test_mode="plain"` is the untouched three-motif control.
+    is constrained (and, for the correlated / chiral modes, which previous
+    strands parent each node and where the walk *starts*); the delay law,
+    refractive routing, and the causal antichain rule are never touched (the
+    chiral parents are all drawn from the previous generation, itself an
+    antichain, so the braid stays valid by construction). So
+    `test_mode="plain"` is the untouched three-motif control.
 
     Birth: three fresh (charge-0) clusters chosen to form a roughly
     equilateral triangle (each seed maximizes `min(dA, dB, dAB) - |dA - dB|/2`
@@ -1237,9 +1250,11 @@ def generate_three_motif_graph(
         raise ValueError("k must be > internal_parents (need at least one capture slot)")
     if motif_width < 2:
         raise ValueError("motif_width must be >= 2")
-    if test_mode not in ("plain", "correlated", "correlated_seed", "forced"):
+    if chirality not in (1, -1):
+        raise ValueError("chirality must be +1 or -1")
+    if test_mode not in ("plain", "correlated", "correlated_seed", "forced", "chiral"):
         raise ValueError(
-            "test_mode must be 'plain', 'correlated', 'correlated_seed', or 'forced'"
+            "test_mode must be 'plain', 'correlated', 'correlated_seed', 'forced', or 'chiral'"
         )
 
     rng = np.random.default_rng(seed)
@@ -1357,14 +1372,16 @@ def generate_three_motif_graph(
                 queue.append(v)
         return radius + 1
 
-    def advance_motif(key, correlated, tangential):
+    def advance_motif(key, correlated, tangential, chiral):
         """One generation for motif `key`. `correlated` starts each strand's
         walk from its inherited heading; `tangential` biases retained captures
-        toward the B-side of the A--B baseline (the prepared / forced kick).
-        Returns the number of captures."""
+        toward the B-side of the A--B baseline (the prepared / forced kick);
+        `chiral` (0 = off, else the handedness in {+1, -1}) fixes the internal
+        braid to a rotating consecutive block. Returns the number of captures."""
         nonlocal next_id, headings
         previous = generations[key][-1]
         previous_set = set(previous)
+        width = len(previous)
         new_generation = []
         new_generation_set = set()
         new_headings = {}
@@ -1375,13 +1392,20 @@ def generate_three_motif_graph(
         for strand in range(motif_width):
             if next_id >= max_nodes:
                 raise RuntimeError(f"max_nodes ({max_nodes}) reached")
-            anchor = previous[strand % len(previous)]
-            if correlated and headings.get(anchor) is not None and headings[anchor] in graph:
-                start = headings[anchor]
+            anchor = previous[strand % width]
+            if chiral:
+                # Strict handedness: parent the consecutive block of previous
+                # strands and start the walk one step around the ring, always
+                # in the fixed direction `chiral` -> a protected circulation.
+                chosen = [previous[(strand + j * chiral) % width] for j in range(internal_parents)]
+                start = previous[(strand + chiral) % width]
             else:
-                start = previous[rng.integers(0, len(previous))]
-            picks = rng.choice(len(previous), size=internal_parents, replace=False)
-            chosen = [previous[i] for i in picks]
+                if correlated and headings.get(anchor) is not None and headings[anchor] in graph:
+                    start = headings[anchor]
+                else:
+                    start = previous[rng.integers(0, width)]
+                picks = rng.choice(width, size=internal_parents, replace=False)
+                chosen = [previous[i] for i in picks]
             captured_nodes = []
             attempts = 0
             while len(captured_nodes) < k - internal_parents and attempts < max_attempts:
@@ -1443,13 +1467,14 @@ def generate_three_motif_graph(
         return captures
 
     for g in range(n_generations):
-        advance_motif("A", correlated=False, tangential=False)
-        advance_motif("B", correlated=False, tangential=False)
+        advance_motif("A", correlated=False, tangential=False, chiral=0)
+        advance_motif("B", correlated=False, tangential=False, chiral=0)
         correlated_c = test_mode in ("correlated", "correlated_seed")
         tangential_c = test_mode == "forced" or (
             test_mode == "correlated_seed" and g < seed_ticks
         )
-        capture_counts_c[g] = advance_motif("C", correlated_c, tangential_c)
+        chiral_c = chirality if test_mode == "chiral" else 0
+        capture_counts_c[g] = advance_motif("C", correlated_c, tangential_c, chiral_c)
 
         for _ in range(background_ratio):
             if not heap or next_id >= max_nodes:
