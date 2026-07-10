@@ -11,6 +11,7 @@ from sim.graph_generators import (
     generate_event_driven_shadow_graph,
     generate_random_dag,
     generate_soup_graph,
+    grazing_bond_volatility,
     generate_three_motif_graph,
     generate_two_motif_graph,
     generate_tei_shadow_graph,
@@ -773,6 +774,39 @@ def test_soup_death_bookkeeping_is_consistent():
             assert len(info["capture_logs"][i]) == death + 1
     marks = info["id_watermarks"]
     assert np.all(np.diff(marks) > 0)
+
+
+def test_grazing_bond_volatility_reads_hotter_gas_than_liquid():
+    # The causal thermometer must register the abundance (gas) run as more
+    # volatile than the scarcity (liquid) run: higher bond turnover, lower
+    # per-bond occupancy. Same seed so only the flux supply differs.
+    gas = generate_soup_graph(
+        150, n_bodies=20, k=3, motif_width=4, warmup_events=20000,
+        walk_hops=3, background_ratio=400, seed=1,
+    )
+    liquid = generate_soup_graph(
+        150, n_bodies=20, k=3, motif_width=4, warmup_events=20000,
+        walk_hops=3, background_ratio=100, seed=1,
+    )
+    hot = grazing_bond_volatility(gas[1], gas[2]["capture_logs"], 20)
+    cold = grazing_bond_volatility(liquid[1], liquid[2]["capture_logs"], 20)
+    assert hot["turnover"] > cold["turnover"]
+    assert cold["occupancy_mean"] > hot["occupancy_mean"]
+    # all metrics are well-formed fractions
+    for m in (hot, cold):
+        assert 0.0 <= m["turnover"] <= 1.0
+        assert 0.0 <= m["frozen_fraction"] <= 1.0
+        assert m["mean_bonds"] >= 0.0
+
+
+def test_grazing_bond_volatility_needs_enough_live_bodies():
+    graph, generations, info = generate_soup_graph(
+        40, n_bodies=4, k=3, motif_width=3, warmup_events=2000,
+        walk_hops=3, background_ratio=40, seed=2,
+    )
+    with pytest.raises(ValueError):
+        # window longer than the run leaves < 2 bodies measurable
+        grazing_bond_volatility(generations, info["capture_logs"], 4, window=999)
 
 
 def test_triangle_angle_on_handbuilt_equilateral_triangle():

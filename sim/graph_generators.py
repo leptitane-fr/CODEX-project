@@ -1825,6 +1825,102 @@ def generate_soup_graph(
     return graph, generations, info
 
 
+def grazing_bond_volatility(
+    generations, capture_logs, n_bodies, window=25, bond_threshold=0.20
+):
+    """Causal thermometer: the topological volatility of the grazing bonds.
+
+    Temperature is not encoded in TEI, so an emergent thermal indicator must
+    be read off the matter itself. This measures the churn of the trophic
+    network of a `generate_soup_graph` run (see
+    math/event_driven_shadow_analysis.md): a *bond* i->j is active in a time
+    window when body j's tube supplies at least `bond_threshold` of body i's
+    captures in that window. The volatility of the active-bond set is the
+    substrate's temperature (hot = every bond dissolves each step; cold =
+    bonds persist).
+
+    Uses **disjoint** windows of `window` generations (not a sliding window --
+    overlapping windows pin turnover to a width-dependent floor and hide the
+    signal). Returns a dict:
+
+    - `turnover`: mean `1 - Jaccard(active_t, active_{t+1})` over consecutive
+      disjoint blocks -- block-to-block churn (1 = fully volatile). Note this
+      one is partly confounded by bond *density* (a larger active set overlaps
+      more by chance), so read it alongside the per-bond measures below, which
+      are not.
+    - `occupancy_mean`: mean over ever-active bonds of the fraction of blocks
+      each is active -- an individual bond's temporal persistence, density-free.
+    - `frozen_fraction`: fraction of ever-active bonds active in >= 80% of
+      blocks (a permanent scaffold -- the signature of a "solid").
+    - `volatile_fraction`: fraction active in <= 1/3 of blocks (the bath).
+    - `mean_bonds`: mean active bonds per block (network density).
+    - `n_blocks`: number of disjoint blocks measured.
+
+    `capture_logs` is `info["capture_logs"]` (per body, per generation, the
+    list of captured node ids); `generations` is the soup's per-body
+    generation lists (used only to map a captured node to its owning body).
+    """
+    owner = {}
+    for j in range(n_bodies):
+        for gen in generations[j]:
+            for node in gen:
+                owner[node] = j
+
+    live = []
+    frac = []
+    for i in range(n_bodies):
+        gi = len(capture_logs[i])
+        if gi <= window:
+            frac.append(None)
+            continue
+        counts = np.zeros((gi, n_bodies + 1))
+        for g in range(gi):
+            for c in capture_logs[i][g]:
+                j = owner.get(c)
+                counts[g, n_bodies if j is None else j] += 1
+        prefix = np.vstack([np.zeros(n_bodies + 1), np.cumsum(counts, axis=0)])
+        win = prefix[window:] - prefix[:-window]
+        total = win.sum(axis=1, keepdims=True)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            frac.append(np.where(total > 0, win / total, 0.0))
+        live.append(i)
+
+    if len(live) < 2:
+        raise ValueError("need at least 2 bodies alive long enough to measure bonds")
+
+    horizon = min(frac[i].shape[0] for i in live)
+    active = []
+    for t in range(0, horizon, window):
+        bonds = {
+            (i, j)
+            for i in live
+            for j in live
+            if j != i and frac[i][t, j] >= bond_threshold
+        }
+        active.append(bonds)
+    n_blocks = len(active)
+
+    turns = [
+        1 - len(active[a] & active[a + 1]) / len(active[a] | active[a + 1])
+        for a in range(n_blocks - 1)
+        if active[a] or active[a + 1]
+    ]
+    turnover = float(np.mean(turns)) if turns else float("nan")
+    mean_bonds = float(np.mean([len(s) for s in active])) if active else 0.0
+
+    ever = set().union(*active) if active else set()
+    occupancy = np.array([sum(p in s for s in active) / n_blocks for p in ever]) if ever else np.array([0.0])
+
+    return {
+        "turnover": turnover,
+        "occupancy_mean": float(occupancy.mean()),
+        "frozen_fraction": float(np.mean(occupancy >= 0.8)),
+        "volatile_fraction": float(np.mean(occupancy <= 1 / 3)),
+        "mean_bonds": mean_bonds,
+        "n_blocks": n_blocks,
+    }
+
+
 def observer_growth_curve(graph, worldline):
     """Number of distinct nodes in the Observer's causal future, indexed by its own tick count.
 
