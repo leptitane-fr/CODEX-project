@@ -406,6 +406,27 @@ carries per-body per-generation captured ids — the raw material for the
 trophic analysis (owner/living/fossil classification is post-hoc, see the
 analysis file).
 
+An **emergent thermodynamics** was then read off the soup via
+`grazing_bond_volatility` (temperature = topological volatility of the
+grazing bonds; a bond i→j is active when j's tube supplies ≥20% of i's
+captures in a disjoint time-window; `turnover`/`occupancy_mean`/
+`frozen_fraction` measure its churn). Verdict (same file): **a single
+emergent observable resolves three states of matter, ordered monotonically
+by flux supply** — gas (abundance, turnover 0.96, occupancy 0.12, 0 frozen
+bonds), liquid (scarcity, 0.81 / 0.21), cold liquid (2 ev/body, 0.71 / 0.28)
+— and at low flux **plus a long horizon (600 gen), 2/11 seeds crystallize
+into a solid** (turnover collapses to ~0.08-0.29, frozen_fraction jumps to
+0.56-0.93): a sharp, stochastic, time-driven nucleation (the rest stay
+supercooled-liquid, with a pre-freezing continuum). So flux alone (at 250
+gen) does not freeze it; flux-low + time does, via nucleation. Methodology
+lesson baked into the tool: use **disjoint** windows (an overlapping sliding
+window pins turnover to a width floor and hides the signal); the `turnover`
+metric is partly density-confounded, so read it with the density-free
+per-bond `occupancy_mean`/`frozen_fraction`, which move the same way.
+Caveats: "temperature/liquid/solid" are analogies (no derived free energy);
+nucleation rate ~2/11 is small-sample. Do not tune toward a target — flux
+supply and horizon are the swept physical controls, not fitted knobs.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

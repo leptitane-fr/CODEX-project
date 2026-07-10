@@ -1667,3 +1667,89 @@ either much lower supply, higher N, or longer horizons (the population's own
 recycling may make true starvation impossible: a candidate structural
 conjecture, not a result). The
 abundance-phase negative (no locks) is 3-seed solid.
+
+## Emergent thermodynamics: the causal thermometer and the three states of matter
+
+### A temperature TEI does not encode
+
+Temperature is nowhere in the TEI axioms, so if the soup has one it must be an
+*emergent* indicator read off the matter itself. Candidate definition: the
+**topological volatility of the grazing bonds**. `grazing_bond_volatility`
+measures it -- a bond i->j is active in a disjoint time window when body j's
+tube supplies >= 20% of body i's captures in that window, and the churn of
+the active-bond set from block to block is the substrate's temperature (hot =
+every bond dissolves each step; cold = bonds persist). Three readouts:
+`turnover` (block-to-block `1 - Jaccard`), `occupancy_mean` (per-bond
+fraction of blocks active -- density-free), and `frozen_fraction` (bonds
+active in >= 80% of blocks -- the permanent-scaffold / solid signature).
+
+Methodology note (a debiasing lesson): the first pass used an *overlapping*
+sliding window (width 20, step 1). Overlap pins turnover and half-life to a
+window-width floor (~17 gen in *every* phase) and inflates autocorrelation --
+it hid the signal entirely. Disjoint blocks (step = width) are required. The
+`turnover` metric additionally has a partial density confound (a larger
+active set overlaps more by chance), so it is read alongside the per-bond
+`occupancy_mean` / `frozen_fraction`, which are not confounded and move the
+same way -- making the cooling real, not an artifact of bond count.
+
+### Gas, liquid, and the approach to freezing (3 seeds each)
+
+Disjoint blocks of 25 generations, bond threshold 0.20, 250 generations:
+
+| phase | supply | turnover | occupancy | frozen | volatile | bonds/block |
+|---|---|---|---|---|---|---|
+| **gas** (abundance) | 20 ev/body | **0.96** | 0.12 | 0.00 | 1.00 | 5 |
+| **liquid** (scarcity) | 5 ev/body | **0.81** | 0.21 | 0.00 | 0.86 | 19 |
+| **cold liquid** | 2 ev/body | **0.71** | 0.28 | 0.01 | 0.68 | 24 |
+
+The thermometer is monotone in flux supply: the gas is maximally agitated
+(turnover 0.96, *every* bond volatile, a typical bond alive only ~12% of the
+time, no permanent bond -- the longest-lived lasts 2-3 of 10 blocks); cooling
+raises bond count (5 -> 24), individual-bond persistence (occupancy 0.12 ->
+0.28), and the longest-lived bond (2 -> 8 of 10 blocks), while lowering
+turnover. But at 250 generations `frozen_fraction` stays ~0 even at 2
+events/body: the network is a denser, more viscous liquid, not a solid. So
+lowering the flux *alone* does not freeze it.
+
+### Time freezes it: nucleation of a solid
+
+The freezing variable turned out to be **time**, not just flux. Cold (2
+events/body), long horizon (600 generations), `frozen_fraction` measured per
+time-third across 11 seeds (1-3 then a 4-11 replication):
+
+- Most seeds cool further with age but stay liquid (final-third turnover
+  0.6-0.86, frozen 0.02-0.23) -- a *continuum* including partly-frozen "cold
+  liquid" seeds (frozen ~0.22).
+- **2 of 11 seeds crystallize outright** (seed 3: turnover 0.08-0.09, frozen
+  0.83-0.93, occupancy 0.89-0.93; seed 4: turnover 0.29, frozen 0.56,
+  occupancy 0.79). The transition is *sharp* -- turnover collapses and the
+  scaffold jumps to near-permanent within one time-third, not gradually.
+
+This is the phenomenology of a first-order freezing transition with
+**stochastic nucleation**: near the freezing point some samples nucleate a
+permanent directed-bond network (a "solid"), the rest remain in a metastable
+supercooled liquid, with a spread of pre-freezing states between. Nucleation
+rate here ~2/11 (~18%) at 600 generations; presumably rising with horizon.
+
+### Diagnostic: TEI has bought its own thermodynamics
+
+A single emergent observable -- grazing-bond volatility -- resolves three
+states of the generated matter (gas / liquid / solid) and orders them
+monotonically by flux supply, with the density-free per-bond metrics
+confirming the ordering. The two boundaries behave like real phase changes:
+gas->liquid is the condensation already documented (a droplet forms), and
+liquid->solid is a sharp, stochastic, time-driven nucleation of a frozen
+directed-bond network. The answer to "can we force turnover to 0 by dropping
+to 2 events/body" is: flux alone (at 250 gen) does not -- but flux-low *plus*
+a long horizon does, via nucleation, in a fraction of runs.
+
+Caveats, stated: "temperature", "liquid", "solid" are descriptive analogies,
+not a derived free energy or a formal order parameter; the nucleation rate
+(~2/11) is a small-sample estimate; the `turnover` metric's density confound
+is defused by `occupancy_mean`/`frozen_fraction` but noted; and no knob was
+tuned toward a target -- flux supply and horizon are the two physical control
+variables of the experiment, swept, not fitted. The recorded next probe (not
+yet run): characterize the nucleation -- does the crystal seed on a specific
+sub-structure (a densest droplet), and does the nucleation rate saturate to 1
+with horizon (freezing is inevitable given time) or plateau below 1 (a true
+supercooled-glass branch)?

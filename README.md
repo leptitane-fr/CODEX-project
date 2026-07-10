@@ -185,6 +185,16 @@ growth-exponent measurement, so the regimes can be compared directly:
   unsaturated free-valence surface, but its size varies (4–9 across seeds)
   and the universe makes several coexisting droplets. See
   `math/event_driven_shadow_analysis.md`, last section.
+- `grazing_bond_volatility` — an **emergent thermometer** for the soup
+  (temperature = topological volatility of the grazing bonds, which TEI does
+  not encode). A single observable resolves **three states of matter**,
+  ordered monotonically by flux supply: **gas** (abundance — bond turnover
+  0.96, no permanent bonds), **liquid** (scarcity — 0.81, denser and more
+  viscous), and, at low flux *plus a long horizon*, a **solid** — 2/11 seeds
+  crystallize a near-permanent directed-bond network (turnover collapses to
+  ~0.1, frozen-bond fraction jumps to 0.6–0.9), a sharp stochastic nucleation
+  with the rest left supercooled. Flux alone does not freeze it; flux-low +
+  time does. See `math/event_driven_shadow_analysis.md`, last section.
 
 ## Reproducibility
 
