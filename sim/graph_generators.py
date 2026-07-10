@@ -1236,6 +1236,17 @@ def generate_three_motif_graph(
       Measured outcome (see math/event_driven_shadow_analysis.md): the
       feedback *does* self-perpetuate, but its fixed point is not motion --
       it is capture-lock onto the nearest reference body (5/5 seeds).
+    - `test_mode="strict"`: whole-membrane antichain exclusion (option C of
+      the same analysis). A capture candidate must be causally independent of
+      *every* member of C's current generation, not merely of the chosen
+      internal parents -- the body as a whole interprets, so prey must be
+      genuinely new information, disjoint from the body-present's entire
+      cone. Binary strict/loose scope, no knob. Measured outcome (same file):
+      fails the metabolic gate structurally -- a body's local space is
+      entirely made of its own causal entanglements (0% strictly-independent
+      nodes at radius <= 6), so strict interpretation starves (capture
+      collapses to ~7-13%) unless C finds the one renewable strictly-new
+      source, another body's worldtube (bimodal: starvation or capture-lock).
 
     Only the *retention* of already-valid, already-antichain-checked candidates
     is constrained (and, for the correlated / chiral modes, which previous
@@ -1264,10 +1275,12 @@ def generate_three_motif_graph(
         raise ValueError("motif_width must be >= 2")
     if chirality not in (1, -1):
         raise ValueError("chirality must be +1 or -1")
-    if test_mode not in ("plain", "correlated", "correlated_seed", "forced", "chiral", "front"):
+    if test_mode not in (
+        "plain", "correlated", "correlated_seed", "forced", "chiral", "front", "strict"
+    ):
         raise ValueError(
             "test_mode must be 'plain', 'correlated', 'correlated_seed', 'forced', "
-            "'chiral', or 'front'"
+            "'chiral', 'front', or 'strict'"
         )
 
     rng = np.random.default_rng(seed)
@@ -1386,14 +1399,15 @@ def generate_three_motif_graph(
                 queue.append(v)
         return radius + 1
 
-    def advance_motif(key, correlated, tangential, chiral, front=False):
+    def advance_motif(key, correlated, tangential, chiral, front=False, strict=False):
         """One generation for motif `key`. `correlated` starts each strand's
         walk from its inherited heading; `tangential` biases retained captures
         toward the B-side of the A--B baseline (the prepared / forced kick);
         `chiral` (0 = off, else the handedness in {+1, -1}) fixes the internal
         braid to a rotating consecutive block; `front` starts every walk from
-        the membrane's external in-edges (its present prey pool). Returns the
-        number of captures."""
+        the membrane's external in-edges (its present prey pool); `strict`
+        widens the capture-independence scope from the chosen parents to the
+        whole previous generation. Returns the number of captures."""
         nonlocal next_id, headings
         previous = generations[key][-1]
         previous_set = set(previous)
@@ -1447,9 +1461,15 @@ def generate_three_motif_graph(
                 ):
                     continue
                 candidate_ancestors = ancestors[candidate]
+                # Independence scope: the chosen parents (the shadow rule's
+                # minimum, and mutual independence of the parent set), plus --
+                # under `strict` -- every member of the previous generation:
+                # the body as a whole interprets, so prey must be causally
+                # disjoint from the entire body-present.
+                scope = chosen if not strict else set(chosen) | set(previous)
                 if not all(
                     not (candidate_ancestors >> p) & 1 and not (ancestors[p] >> candidate) & 1
-                    for p in chosen
+                    for p in scope
                 ):
                     continue
                 if tangential:
@@ -1502,7 +1522,8 @@ def generate_three_motif_graph(
         )
         chiral_c = chirality if test_mode == "chiral" else 0
         capture_counts_c[g] = advance_motif(
-            "C", correlated_c, tangential_c, chiral_c, front=(test_mode == "front")
+            "C", correlated_c, tangential_c, chiral_c,
+            front=(test_mode == "front"), strict=(test_mode == "strict"),
         )
 
         for _ in range(background_ratio):

@@ -348,6 +348,28 @@ members from the pool ("don't eat bodies" is a new ad-hoc law steering the
 mechanism away from its natural attractor — TEI-3.x failure mode); the
 attractor is the finding.
 
+Option C (`test_mode="strict"`) then closed the QR-code program: capture
+candidates must be causally independent of the *whole* previous generation
+(the body as a whole interprets — binary widening of the independence scope,
+no knob). Verdict (same file): **metabolic gate failure with a positive
+geometric finding**. Capture starts ~60-70% then collapses to 7-13% within
+~60 generations — and the measured cause is the strongest result of the arc:
+a plain body's neighbourhood contains **0% strictly-independent nodes at
+every radius ≤ 6, at every age** — a body's local space is entirely made of
+its own causal entanglements (ordinary metabolism is, in strict terms, ~100%
+re-interpretation of the body's own extended cone). One seed in three escaped
+by locking onto the partner's worldtube (99% of captures, contact range) —
+the same bound-state attractor as `front`, reached from the opposite
+direction. The program's adjudication: B rejected on sign, A and C both
+terminate in matter-bound-to-matter; a self-perpetuating displacement state
+pointing at *space* does not exist in this substrate at this scale, because
+at metabolic range there is no causally-fresh space to move into. Do not
+search for an intermediate independence scope between "chosen parents" and
+"whole membrane" that passes the gate — that interpolation is a knob
+(TEI-3.x failure mode). Per protocol, no drift study was run for `strict`
+(the gate failed first); the frontier profile is a pure observation on the
+unmodified plain dynamics.
+
 ## Keeping this file current
 
 If the toy model grows further (new generators, refinements to the shadow

@@ -577,7 +577,8 @@ def test_three_motif_rejects_invalid_parameters():
 
 
 @pytest.mark.parametrize(
-    "mode", ["plain", "correlated", "correlated_seed", "forced", "chiral", "front"]
+    "mode",
+    ["plain", "correlated", "correlated_seed", "forced", "chiral", "front", "strict"],
 )
 def test_three_motif_preserves_invariants_under_all_modes(mode):
     graph, generations, info = _small_three_motif_graph(mode=mode)
@@ -620,7 +621,7 @@ def test_three_motif_records_increasing_id_watermarks():
 
 
 @pytest.mark.parametrize(
-    "mode", ["correlated", "correlated_seed", "forced", "chiral", "front"]
+    "mode", ["correlated", "correlated_seed", "forced", "chiral", "front", "strict"]
 )
 def test_three_motif_nonplain_modes_are_not_no_ops(mode):
     # Each non-plain test_mode must actually change C's evolution vs the plain
@@ -659,6 +660,23 @@ def test_three_motif_front_mode_metabolizes_from_its_prey_pool():
     # The worldtube itself stays well-formed: constant width, no duplicates.
     all_c = [n for gen in generations["C"] for n in gen]
     assert len(all_c) == len(set(all_c))
+
+
+def test_three_motif_strict_captures_are_independent_of_whole_membrane():
+    # Under test_mode="strict", every capture (a parent of a C node that is
+    # not a member of the preceding generation) must be causally incomparable
+    # with EVERY member of that preceding generation -- the widened
+    # interpretation scope, checked here independently via nx.has_path.
+    graph, generations, _ = _small_three_motif_graph(mode="strict")
+    for prev, current in zip(generations["C"], generations["C"][1:]):
+        prev_set = set(prev)
+        for node in current:
+            for parent in graph.predecessors(node):
+                if parent in prev_set:
+                    continue
+                for member in prev:
+                    assert not nx.has_path(graph, parent, member)
+                    assert not nx.has_path(graph, member, parent)
 
 
 def test_three_motif_opposite_chiralities_diverge():

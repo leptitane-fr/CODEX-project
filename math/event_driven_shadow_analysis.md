@@ -1455,3 +1455,82 @@ option analysis is C (strict whole-membrane antichain exclusion), which asks
 a different question -- whether the flux's geometry can carry a forward
 direction at all -- and whose null would localize the missing ingredient in
 the substrate's geometry rather than the motif's structure.
+
+## Option C: strict whole-membrane exclusion -- the geometry answers
+
+### The rule
+
+`test_mode="strict"`: a capture candidate must be causally independent of
+*every* member of C's current generation, not merely of the chosen internal
+parents. Ontological reading: the body as a whole interprets, so its intake
+must be genuinely new information -- causally disjoint from the entire
+body-present's cone. Binary widening of the existing independence scope
+(loose -> strict), no knob. The question it was built to ask: once the rear
+cone is fully closed, does the flux geometry offer a *forward* direction at
+metabolic range? Pre-registered known weakness: closing the rear does not
+select a forward; a failure here localizes the missing ingredient in the
+substrate's geometry, not the motif's structure.
+
+### Result 1: the metabolic gate fails, structurally and with a timescale
+
+Capture starts healthy (~60-70% for the first ~60 generations, while the
+body still sits in flux it has not yet touched) and then collapses to
+**7-13%** for the rest of the run (seeds 1, 2; 300 generations): the body's
+own causal cone -- everything it has eaten, everything it has radiated,
+everything downstream of both -- progressively saturates its metabolic
+neighbourhood until almost nothing reachable is strictly new. Per protocol
+(gate 60-90% before any exponent study), no drift study was run. This is not
+a tuning failure: no parameter exists in the rule to tune.
+
+### Result 2: the causal-frontier profile of an ordinary body
+
+The cause was then measured directly on a *plain* body (normal metabolism,
+no strict rule active), by classifying every node of its neighbourhood, per
+hop radius and per age, as strictly independent of the whole membrane or
+not. Result: **0% strictly-independent nodes at every radius r <= 6, at
+every age tested (g = 30, 100, 200, 290)** -- shells of ~6-10 nodes each,
+all causally entangled with the body. Two consequences:
+
+- A body's local "space" is entirely made of its own causal entanglements:
+  there is no fresh-flux frontier at interaction range, at any age. The
+  apparent freshness of an ordinary body's diet is an artifact of the loose
+  scope -- in strict terms, ordinary metabolism is ~100% re-interpretation
+  of the body's own extended cone.
+- The option-C question is answered in the strongest possible form: the
+  substrate cannot carry a forward direction at metabolic range because
+  there is no causally-new direction at all. Every direction points into
+  the body's own past.
+
+### Result 3: the bimodal escape -- the same attractor again
+
+One seed in three escaped starvation, at 94-98% capture, by finding the one
+renewable strictly-valid food source in the universe: **another body's
+worldtube** (99% of late captures from B's tube, riding at hop distance 2 --
+another worldtube is causally disjoint matter, so it passes the strict test
+where the body's own neighbourhood cannot). This is the same capture-lock
+attractor option A reached, arrived at from the opposite direction: A got
+there by following its own self-collimating intake; C gets there because
+everything else is inedible. Outcomes are bimodal -- starve free (7-13%) or
+bind to a partner at contact range (98%) -- mirroring the silence-or-merger
+bimodality of the two-body sector.
+
+### Verdict
+
+Gate failure with a positive geometric finding. Options A and C, two
+independent mechanisms built to encode movement-through-space, converge on
+the same terminal state: **matter bound to matter**. The substrate's own
+geometry explains why: at interaction range, "space" is saturated with the
+body's causal past (frontier profile: 0% at r <= 6), so the only genuinely
+*other* place a dynamical rule can point at is another worldtube. Space in
+this substrate is not a medium a body can move through -- it is the body's
+own wake, plus other bodies. Per discipline: the gate was checked before any
+exponent was measured and its failure is reported as the result; the
+frontier profile is a pure observation on the unmodified plain dynamics; and
+no widening/narrowing of the scope in between "chosen parents" and "whole
+membrane" was searched for a value that would pass the gate (that
+interpolation would be a knob -- TEI-3.x failure mode). The Markovian
+QR-code program (options A, B, C) is now fully adjudicated: B rejected on
+sign, A and C both terminate in binding. A self-perpetuating displacement
+state pointing at *space* does not exist in this substrate at this scale;
+the missing ingredient is now localized in the geometry itself -- a body
+has no causally-fresh space around it to move *into*.

@@ -160,8 +160,14 @@ growth-exponent measurement, so the regimes can be compared directly:
   self-perpetuating displacement state points at *matter*, not *space*: the
   QR code of movement compiles into gravitational capture — incidentally the
   project's **first stable two-body bound state** (neither silence nor
-  merger), though at contact range only. See
-  `math/event_driven_shadow_analysis.md` for the full arc.
+  merger), though at contact range only. The program's last option
+  (`test_mode="strict"`: captures must be causally independent of the whole
+  membrane — the body as a whole interprets) failed its metabolic gate and
+  measured why: a body's neighbourhood contains **0% strictly-independent
+  nodes out to radius 6, at any age** — local space is entirely the body's
+  own causal entanglements, so there is no causally-fresh space to move
+  into; the one escape observed is, again, locking onto another body's
+  worldtube. See `math/event_driven_shadow_analysis.md` for the full arc.
 
 ## Reproducibility
 
